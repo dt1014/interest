@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 
 class NNLMmodel(object):
-    
+
     def __init__(self, params):
         self.params = params
 
@@ -128,6 +128,7 @@ class ABSmodel(NNLMmodel):
         self.P = tf.Variable(tf.truncated_normal((window_size*embedding_size, hidden_size),
                                                  stddev=1.0/math.sqrt(hidden_size))) # 乱数の設定を参照
         self.p_ = tf.matmul(self.tilde_y_c_dash, self.P)
+        self.smoothed_x = tf.cast(tf.placeholder(tf.int32, shape=[batch_size, None, vocab_size]), tf.float32) / (2*smoothing_window_size+1)
         # print(self.p_.get_shape()) # (batch_size, hidden_size)
         # print(self.tilde_x.get_shape()) # (batch_size, None(hidden_size, hidden_size))
         
@@ -135,53 +136,24 @@ class ABSmodel(NNLMmodel):
             # print(tf.slice(self.p_, [i, 0], [1, -1]).get_shape()) # (1, hidden_size)
             # print(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]).get_shape()) # (1, None(x_length), hidden_size)
             # print(tf.reshape(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]), [-1, hidden_size]).get_shape()) # (None(x_length), hidden_size)
-            temp = tf.matmul(tf.slice(self.p_, [i, 0], [1, -1]), tf.transpose(tf.reshape(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]), [-1, hidden_size])))
-            # print(temp.get_shape()) # (1, None(x_length))
-            if i == 0:
-                self.p = temp
-            else:
-                self.p = tf.concat(0, [self.p, temp])
-
-        self.p = tf.exp(self.p)
-        # print(self.p.get_shape()) # (batch_size, None(x_length))
-      
-        for i in range(batch_size):
-
-            temp = self.smooth(tf.reshape(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]), [-1, hidden_size]), smoothing_window_size)
-
-            if i == 0:
-                self.x_bar = temp
-            else:
-                self.x_bar = tf.concat(0, [self.x_bar, temp])
-
-    
-    def smooth(self, tilde_x, smoothing_window_size):
-        # print('smoothing')
-        # print(tf.shape(tilde_x))
-        # print(tf.shape(tilde_x)[0])
-        # print(tf.shape(tilde_x)[1])xs
-        # print('p: ', tf.shape(self.p, out_type=int))
-        # print('p: ', tf.shape(self.p)[0])
-        # print('p: ', tf.shape(self.p)[1])
-        # print('p: ', tf.shape(self.p)[2])
-        # print('p: ', self.p.get_shape())
-        # print(tf.placeholder(tf.int32, shape=tf.shape(tilde_x)))
-        # print(tilde_x.get_shape())
-        # print('smoothed')
-
-        print(tilde_x.get_shape())
-
-        iter_tilde_x = tf.unpack(tilde_x)
-        print(iter_tilde_x)
-
-        # for i, tilde_x_ in enumerate(iter_tilde_x):
-        #     print(i)
-        #     print(tilde_x_)
+            # print(tf.reshape(tf.slice(self.smoothed_x, [i, 0, 0], [1, -1, -1]), [-1, vocab_size]).get_shape()) # (None(x_length), vocab_size)
+            # print(self.F.get_shape()) # (vocab_size, hidden_size)
             
-                                       
-        
-    def train(self, session, x, y_c, t):
-        feed_dict = {self.x: x, self.y_c: y_c, self.t: t}
+            p = tf.matmul(tf.slice(self.p_, [i, 0], [1, -1]), tf.transpose(tf.reshape(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]), [-1, hidden_size])))
+            x_bar = tf.matmul(tf.reshape(tf.slice(self.smoothed_x, [i, 0, 0], [1, -1, -1]), [-1, vocab_size]), self.F)
+            temp = tf.matmul(p, x_bar)
+
+            # print(p.get_shape())
+            # print(x_bar.get_shape())
+            # print(temp.get_shape())
+
+            if i == 0:
+                self.enc = temp
+            else:
+                self.enc = tf.concat(0, [self.enc, temp])
+                
+    def train(self, session, x, smoothed_x, y_c, t):
+        feed_dict = {self.x: x, self.smoothed_x: smoothed_x, self.y_c: y_c, self.t: t}
         self.train_step.run(session=session, feed_dict=feed_dict)
         return self.accuracy.eval(session=session, feed_dict=feed_dict)
         

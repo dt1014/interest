@@ -15,5 +15,6 @@ else
 		   --save_path ${REUTERS_DATASET_PATH}  
 fi
 
-python pyscripts/train.py \
+
+python pyscripts/train_ABS.py \
 	   --dataset_path ${REUTERS_DATASET_PATH} 

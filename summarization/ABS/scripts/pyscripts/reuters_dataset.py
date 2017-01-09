@@ -120,7 +120,8 @@ def arrange(dataset, params):
     # print(dataset)
     
     dictionary = gensim.corpora.Dictionary(dataset.values.flatten())
-
+    print('vocabulary size:', len(list(dictionary.iterkeys())))
+    
     dataset = dataset.applymap(functools.partial(labeling, dictionary=dictionary)
     ).assign(x_length=lambda dataset: dataset['x_tokens'].apply(lambda x: len(x)),
              t_length=lambda dataset: dataset['t_tokens'].apply(lambda x: len(x)-window_size-1)
@@ -133,7 +134,7 @@ def arrange(dataset, params):
     dataset = dataset.sort_values('x_length')
     dataset.reset_index(inplace=True, drop=True)
 
-    dataset = dataset.iloc[:10] 
+    # dataset = dataset.iloc[:10]  ##################################################################################
     
     pool = Pool()
     results = pool.map(functools.partial(split_yc_t,
@@ -164,6 +165,7 @@ def make_p(x_length, x_max_length):
                                            
 
 def make_batch(dataset, dictionary, params):
+    print('making batch...')
     batch_size = params.batch_size
     n_batch = int((dataset.shape[0]-1)/batch_size+1)
 
