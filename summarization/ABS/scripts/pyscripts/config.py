@@ -4,5 +4,5 @@ class params(object):
      embedding_size = 100
      window_size = 3
      hidden_size = 200
-     epoch = 10
+     epoch = 100
      smoothing_window_size = 2

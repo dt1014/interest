@@ -13,6 +13,7 @@ import MeCab
 import gensim
 import numpy as np
 import pandas as pd
+from sklearn.cross_validation import train_test_split
 
 import config
 
@@ -33,9 +34,18 @@ def load_rawdata(data_paths):
     data.reset_index(inplace=True, drop=True)
     print('data shape', data.shape)
     # print(data)
+
+    # data = data.iloc[: 10] #################################################################################################3
     
     return data
-        
+
+def split_data(data):
+    train, test = train_test_split(data, test_size=0.20, random_state=0)
+    train.reset_index(inplace=True, drop=True)
+    test.reset_index(inplace=True, drop=True)
+    return train, test
+    
+
 def first_sentence(sentences):
     try:
         first = re.match('(.*?)。', sentences).group(0)
@@ -105,8 +115,8 @@ def filtering(dataset):
     dataset = dataset.drop(np.where(dataset['x_length']<=dataset['t_length'])[0], axis=0)
     return dataset
     
-def arrange(dataset, params):
-    print('arranging...')
+def arrange_train(dataset, params, dictionary):
+    print('arranging train...')
     window_size = params.window_size
     dataset = dataset.assign(x_tokens=lambda dataset: dataset.apply(tokenize_first_sentence, axis=1),
                              t_tokens=lambda dataset: dataset.apply(functools.partial(tokenize_title,
@@ -118,8 +128,11 @@ def arrange(dataset, params):
     dataset.reset_index(inplace=True, drop=True)
     
     # print(dataset)
-    
-    dictionary = gensim.corpora.Dictionary(dataset.values.flatten())
+
+    if dictionary:
+        dictionary.add_documents(dataset.values.flatten())
+    else:
+        dictionary = gensim.corpora.Dictionary(dataset.values.flatten())
     print('vocabulary size:', len(list(dictionary.iterkeys())))
     
     dataset = dataset.applymap(functools.partial(labeling, dictionary=dictionary)
@@ -130,11 +143,9 @@ def arrange(dataset, params):
     dataset = filtering(dataset)
 
     # print(dataset)
-    
+
     dataset = dataset.sort_values('x_length')
     dataset.reset_index(inplace=True, drop=True)
-
-    # dataset = dataset.iloc[:10]  ##################################################################################
     
     pool = Pool()
     results = pool.map(functools.partial(split_yc_t,
@@ -144,10 +155,45 @@ def arrange(dataset, params):
         if i == 0:
             results = result
         else:
-            results = np.r_[results, result]    
+            results = np.r_[results, result]   
+            
             
     dataset = pd.DataFrame(results, columns=['x_labels', 'yc_labels', 't_label']
     ).assign(x_length=lambda dataset: dataset['x_labels'].apply(lambda x: len(x)))
+
+    # print(dataset)
+    
+    return dataset, dictionary
+
+def arrange_test(dataset, params, dictionary):
+    print('arranging test...')
+
+    print('arranging train...')
+    window_size = params.window_size
+    dataset = dataset.assign(x_tokens=lambda dataset: dataset.apply(tokenize_first_sentence, axis=1),
+                             t_tokens=lambda dataset: dataset.apply(functools.partial(tokenize_title,
+                                                                                      window_size=window_size), axis=1),
+    ).drop(['title', 'content'], axis=1
+    ).dropna(axis=0
+    )[['x_tokens', 't_tokens']]
+
+    dataset.reset_index(inplace=True, drop=True)
+    
+    # print(dataset)
+
+    if dictionary:
+        dictionary.add_documents(dataset.values.flatten())
+    else:
+        dictionary = gensim.corpora.Dictionary(dataset.values.flatten())
+    print('vocabulary size:', len(list(dictionary.iterkeys())))
+    
+    dataset = dataset.applymap(functools.partial(labeling, dictionary=dictionary)
+    ).assign(x_length=lambda dataset: dataset['x_tokens'].apply(lambda x: len(x)),
+             t_length=lambda dataset: dataset['t_tokens'].apply(lambda x: len(x)-window_size-1)
+    ).rename(columns={'x_tokens': 'x_labels', 't_tokens': 'yc_and_t_labels'})
+
+    dataset = filtering(dataset)
+    dataset = dataset.drop(['x_length', 't_length'], axis=1)
 
     # print(dataset)
     
@@ -167,7 +213,7 @@ def make_p(x_length, x_max_length):
 def make_batch(dataset, dictionary, params):
     print('making batch...')
     batch_size = params.batch_size
-    n_batch = int((dataset.shape[0]-1)/batch_size+1)
+    n_batch = int((dataset.shape[0]-1)/batch_size+1) - 1 ############################################################################################## -1
 
     list_batch = []
 
@@ -189,27 +235,34 @@ def make_batch(dataset, dictionary, params):
         #print(batch_df.assign(length=lambda batch_df: batch_df['x_labels'].apply(lambda x: len(x))))
         # print(batch_df)
         
-        #yield batch_df.values
-        list_batch.append(batch_df)
-    return list_batch
+        yield i, n_batch, batch_df
+        #list_batch.append(batch_df)
+    #return list_batch
 
-def save_dataset(path, datset, dictionary):
+def save_dataset(path, dataset):
     print('saving dataset...')
-    with open(path, 'wb') as f_save:
-        pickle.dump((dataset, dictionary), f_save)
+    dataset.to_pickle(path)
 
 def load_dataset(path):
     print('loding dataset...')
-    with open(path, 'rb') as f_load:
-        dataset, dictionary = pickle.load(f_load)
-    return dataset, dictionary
-        
+    dataset = pd.read_pickle(path)
+    return dataset
+
+def save_dictionary(path):
+    print('saving dictionary...')
+    with open(path, 'wb') as f_dict:
+        pickle.dump(dictionary, f_dict)
+
+def load_dictionary(path):
+    print('loading dictionary...')
+    with open(path, 'rb') as f_dict:
+        return pickle.load(f_dict)
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--data_paths_template', type=str, default=None)
-    parser.add_argument('--save_path', type=str, default=None)
+    parser.add_argument('--save_dir', type=str)
     args = parser.parse_args()
     
     pd.set_option('display.width', 10000)
@@ -217,8 +270,12 @@ if __name__ == '__main__':
     data_paths = glob.glob(args.data_paths_template.replace('\\', ''))
     
     data = load_rawdata(data_paths)
-    dataset, dictionary = arrange(data, config.params)
-    make_batch(dataset, dictionary, config.params)
-    save_dataset(args.save_path, dataset, dictionary)
-    
-    
+    train, test =  split_data(data)
+    dictionary = None
+    train_dataset, dictionary = arrange_train(train, config.params, dictionary)
+    test_dataset, dictionary = arrange_test(test, config.params, dictionary)
+    # make_batch(dataset, dictionary, config.params)
+    save_dataset(args.save_dir+'/train.pkl', train_dataset)
+    save_dataset(args.save_dir+'/test.pkl', test_dataset)
+    save_dictionary(args.save_dir+'/dictionary.pkl')
+
