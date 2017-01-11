@@ -35,7 +35,7 @@ def load_rawdata(data_paths):
     print('data shape', data.shape)
     # print(data)
 
-    # data = data.iloc[: 2000] #################################################################################################3
+    # data = data.iloc[: 100] #################################################################################################3
     
     return data
 
@@ -93,7 +93,7 @@ def tokenize_title(series, window_size):
 def labeling(token, dictionary):
     return list(map(lambda x: dictionary.token2id[x], token))
       
-def split_yc_t(arr, window_size):    
+def split_yc_t(arr, window_size, dictionary):    
     x_labels = arr[0]
     yc_and_t_labels = arr[1]
     for i in range(len(yc_and_t_labels[: -window_size])):
@@ -196,26 +196,25 @@ def arrange_test(dataset, params, dictionary):
     
     return dataset, dictionary
 
-def pad_x(x_labels, x_max_length, symbol_ids):
+def pad_x(x_labels, x_max_length, dictionary):
     # if len(x_labels) != x_max_length:
     #     print(x_max_length-len(x_labels))
     #     print(x_labels + [dictionary.token2id['EOS']]*(x_max_length-len(x_labels)))
-    x_labels = list(map(int, x_labels.replace('[', '').replace(']', '').split(',')))
-    return x_labels + [symbol_ids['EOS']]*(x_max_length-len(x_labels))
+    return x_labels + [dictionary.token2id['EOS']]*(x_max_length-len(x_labels))
     #return np.r_[x_labels, np.array([dictionary.token2id['EOS']]*(x_max_length-len(x_labels)))]
    
-def list_yc_t(yc_and_t_labels):
-    return list(map(int, yc_and_t_labels.replace('[', '').replace(']', '').split(',')))
-    
+
 def make_p(x_length, x_max_length):
     return [1.0/x_length]*x_length + [0.0]*(x_max_length-x_length)
                                            
 
-def make_batch(dataset, symbol_ids, params, seed):
+def make_batch(dataset, dictionary, params, seed):
+    print('making batch...')
     batch_size = params.batch_size
     window_size =params.window_size
     slice_data_size = int(config.params.batch_size // dataset['t_length'].mean())
     n_slice_data = int((dataset.shape[0]-1)/slice_data_size+1)
+    # n_batch = int((dataset.shape[0]-1)/batch_size+1) - 1 ############################################################################################## -1
     
     list_batch = []
     
@@ -223,13 +222,15 @@ def make_batch(dataset, symbol_ids, params, seed):
         rng = np.random.RandomState(seed)
         batch_df = dataset.iloc[i*slice_data_size: (i+1)*slice_data_size]
         x_max_length = batch_df['x_length'].max()
-
+        # print(x_max_length)
+        # print(batch_df)
+        # print(batch_df['x_labels'])
+        # print(batch_df.ix[0, 'x_labels'])
         batch_df = batch_df.assign(x_labels_padded=lambda batch_df: batch_df['x_labels'].apply(functools.partial(pad_x,
-                                                                                                                 x_max_length=x_max_length,
-                                                                                                                 symbol_ids=symbol_ids)),
-                                   list_yc_and_t_labels=lambda batch_df: batch_df['yc_and_t_labels'].apply(list_yc_t)
-        ).drop(['x_labels', 'yc_and_t_labels'], axis=1
-        ).rename(columns={'x_labels_padded': 'x_labels', 'list_yc_and_t_labels': 'yc_and_t_labels'}
+                                                                                                      x_max_length=x_max_length,
+                                                                                                      dictionary=dictionary))
+        ).drop('x_labels', axis=1
+        ).rename(columns={'x_labels_padded': 'x_labels'}
         ).drop(['x_length', 't_length'], axis=1
         )[['x_labels', 'yc_and_t_labels']]
         
@@ -242,7 +243,8 @@ def make_batch(dataset, symbol_ids, params, seed):
 
         pool = Pool(4)
         results = pool.map(functools.partial(split_yc_t,
-                                             window_size=window_size), batch_df.values)
+                                             window_size=window_size,
+                                             dictionary=dictionary), batch_df.values)
         pool.close()
         for j, result in enumerate(results):
             if j == 0:
@@ -261,20 +263,17 @@ def make_batch(dataset, symbol_ids, params, seed):
         batch_df = batch_df.iloc[idx_arr]
 
         # print(batch_df.assign(x_length=lambda batch_df: batch_df['x_labels'].apply(lambda x: len(x))))
-
-        # print(batch_df)
         
         yield i, n_slice_data, batch_df
    
 
 def save_dataset(path, dataset):
     print('saving dataset...')
-    dataset.to_csv(path, index_label=False)
+    dataset.to_pickle(path)
 
-def load_dataset(path, skiprows, nrows):
-    col_names = ['x_labels', 'yc_and_t_labels', 't_length', 'x_length']
-    with open(path, 'r') as f_load:
-        dataset = pd.read_csv(f_load, skiprows=skiprows, nrows=nrows, names=col_names)
+def load_dataset(path):
+    print('loding dataset...')
+    dataset = pd.read_pickle(path)
     return dataset
 
 def save_dictionary(path):
@@ -304,7 +303,7 @@ if __name__ == '__main__':
     train_dataset, dictionary = arrange_train(train, config.params, dictionary)
     test_dataset, dictionary = arrange_test(test, config.params, dictionary)
     # make_batch(dataset, dictionary, config.params)
-    save_dataset(args.save_dir+'/train.csv', train_dataset)
-    save_dataset(args.save_dir+'/test.csv', test_dataset)
+    save_dataset(args.save_dir+'/train.pkl', train_dataset)
+    save_dataset(args.save_dir+'/test.pkl', test_dataset)
     save_dictionary(args.save_dir+'/dictionary.pkl')
 
