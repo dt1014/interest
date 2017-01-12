@@ -115,57 +115,11 @@ class ABSmodel(NNLMmodel):
         self.x_bar = tf.transpose((x_bar_forward + x_bar_backward - self.tilde_x), [1, 0, 2]) / (2*smoothing_window_size+1)
         
         self.tilde_x = tf.transpose(self.tilde_x, [1, 0, 2]) # x_barを計算した後
-        
-        # print(self.tilde_x.get_shape())
-        # print(self.x_bar.get_shape())
-        # print(self.p_.get_shape())
-        
 
-        self.enc = tf.squeeze(tf.scan(lambda a, x: tf.matmul(tf.matmul(tf.expand_dims(x[0], 0), x[1]), x[2]), #(1, ?) (?, hidden_size)
+        self.enc = tf.squeeze(tf.scan(lambda a, x: tf.matmul(tf.exp(tf.matmul(tf.expand_dims(x[0], 0), x[1])), x[2]), #(1, ?) (?, hidden_size)
                                       elems=(self.p_, tf.transpose(self.tilde_x, [0, 2, 1]), self.x_bar),
                                       initializer=tf.zeros([1, hidden_size])), 1)
 
-        # print(self.enc.get_shape())
-        
-        # self.smoothed_x = tf.cast(tf.placeholder(tf.int32, shape=[batch_size, None, vocab_size]), tf.float32) / (2*smoothing_window_size+1)
-        # self.enc = tf.reshape(tf.scan(fn=lambda a, x: tf.matmul(tf.matmul(tf.expand_dims(x[0], 0), x[1]), tf.matmul(x[2], self.F)), #(1, None) (None, hidden_size)
-        #                               elems=(self.p_, tf.transpose(self.tilde_x, [0, 2, 1]), self.smoothed_x),
-        #                               initializer=tf.zeros([1, hidden_size])), [batch_size, -1])
-       
-        # print(self.enc.get_shape())
-        # print(self.smoothed_x.get_shape())
-        # self.enc = 
-        
-        
-        # # self.p = tf.matmul(tf.expand_dims(self.p_, 1), tf.transpose(self.tilde_x, [0, 2, 1]))
-
-        # self.ps = []
-        # self.x_bars = []
-        # self.temps = []
-        
-        # for i in range(batch_size):
-        #     # print(tf.slice(self.p_, [i, 0], [1, -1]).get_shape()) # (1, hidden_size)
-        #     # print(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]).get_shape()) # (1, None(x_length), hidden_size)
-        #     # print(tf.reshape(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]), [-1, hidden_size]).get_shape()) # (None(x_length), hidden_size)
-        #     # print(tf.reshape(tf.slice(self.smoothed_x, [i, 0, 0], [1, -1, -1]), [-1, vocab_size]).get_shape()) # (None(x_length), vocab_size)
-        #     # print(self.F.get_shape()) # (vocab_size, hidden_size)
-            
-        #     p = tf.matmul(tf.slice(self.p_, [i, 0], [1, -1]), tf.transpose(tf.reshape(tf.slice(self.tilde_x, [i, 0, 0], [1, -1, -1]), [-1, hidden_size])))
-        #     x_bar = tf.matmul(tf.reshape(tf.slice(self.smoothed_x, [i, 0, 0], [1, -1, -1]), [-1, vocab_size]), self.F)
-        #     temp = tf.matmul(p, x_bar)
-        #     self.ps.append(p)
-        #     self.x_bars.append(x_bar)
-        #     self.temps.append(temp)
-            
-        #     # print(p.get_shape())
-        #     # print(x_bar.get_shape())
-        #     # print(temp.get_shape())
-
-        #     if i == 0:
-        #         self.enc = temp
-        #     else:
-        #         self.enc = tf.concat(0, [self.enc, temp])
-        # print(self.enc.get_shape())
                 
     def train(self, session, x, y_c, t):
         feed_dict = {self.x: x, self.y_c: y_c, self.t: t}
@@ -173,7 +127,7 @@ class ABSmodel(NNLMmodel):
         return self.accuracy.eval(session=session, feed_dict=feed_dict)
 
     
-    def restore_build_forward_graph(self, sess, model_path):
+    def rebuild_forward_graph(self, sess, model_path):
 
         window_size = self.params.window_size
         vocab_size = self.params.vocab_size
@@ -206,6 +160,7 @@ class ABSmodel(NNLMmodel):
                         'G': self.G,
                         'F': self.F,
                         'P': self.P}
+        
         saver = tf.train.Saver(restore_vals)
         saver.restore(sess, model_path)
 
@@ -215,6 +170,9 @@ class ABSmodel(NNLMmodel):
         self.h = tf.nn.tanh(tf.matmul(tf.expand_dims(self.tilde_y_c, 0), self.U_w) + self.U_b)
         
         self.prob_from_h = tf.matmul(self.h, self.V_w) + self.V_b
+        
+        ### encoder ###
+        
         self.x = tf.placeholder(tf.int32, shape=[None])
 
         self.tilde_y_c_dash = tf.reshape(tf.nn.embedding_lookup(self.G, self.y_c), shape=[window_size*embedding_size])
@@ -222,29 +180,15 @@ class ABSmodel(NNLMmodel):
         
         self.p_ = tf.matmul(tf.expand_dims(self.tilde_y_c_dash, 0), self.P)
         
-        self.smoothed_x = tf.cast(tf.placeholder(tf.int32, shape=[None, vocab_size]), tf.float32) / (2*smoothing_window_size+1)
         
-        self.p = tf.matmul(self.p_, tf.transpose(self.tilde_x))
-        self.x_bar = tf.matmul(tf.reshape(self.smoothed_x, [-1, vocab_size]), self.F)
-        self.enc = tf.matmul(self.p, self.x_bar)
+        
+        
         self.prob_from_enc = tf.matmul(self.enc, self.W_w) + self.W_b
         
         self.prob = tf.nn.softmax(self.prob_from_h + self.prob_from_enc)
         self.t = tf.cast(tf.placeholder(tf.int32, shape=[vocab_size]), tf.float32)
         self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
-        
-        
-
-
-
-
-
-
-
-
-
-
         
     
 

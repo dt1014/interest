@@ -14,16 +14,6 @@ import reuters_dataset
 
 import config
 
-# この関数とxのパディングの関数をmake_batchにある並列の中に入れる
-def make_smoothed_x(x, vocab_size):
-    start = time.time()
-    smoothed_x = np.zeros((config.params.batch_size, x.shape[1], vocab_size))
-    for i in range(x.shape[0]):
-        for j in range(x.shape[1]):
-            for k in range(-config.params.smoothing_window_size, config.params.smoothing_window_size+1):
-                smoothed_x[i][j][x[i][min(x.shape[1]-1, max(0, j+k))]] += 1
-    return smoothed_x
-
 pd.set_option('display.width', 1000)
 
 parser = argparse.ArgumentParser(description='')
@@ -32,9 +22,6 @@ parser.add_argument('--dataset_path', type=str)
 parser.add_argument('--dictionary_path', type=str)
 parser.add_argument('--save_dir', type=str)
 args = parser.parse_args()
-
-# dataset = reuters_dataset.load_dataset(args.dataset_path)
-# list_batch = reuters_dataset.make_batch(dataset, dictionary, config.params)[: -1]#[: 10] ### とりあえず
 
 dictionary = reuters_dataset.load_dictionary(args.dictionary_path)
 start_symbol_id = dictionary.token2id['<S>']

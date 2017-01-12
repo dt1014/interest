@@ -70,20 +70,11 @@ def tokenize(sentence):
     return parse.split()
 
 def tokenize_first_sentence(series):
-    # print('========================================')
-    # print(series['content'])
     sentence = first_sentence(series['content'])
-    # print('-------------------------------')
-    # print(sentence)
     if sentence:
         token = tokenize(sentence)
     else:
-        # import time
-        # time.sleep(10)
         return None
-    # print('-------------------------------')
-    # print(token)
-    
     return token
 
 def tokenize_title(series, window_size):
@@ -195,7 +186,7 @@ def make_batch(dataset, symbol_ids, params):
     dataset = pd.DataFrame(results, columns=['x_labels', 'yc_labels', 't_label'])
     dataset = dataset.assign(x_length=lambda dataset: dataset['x_labels'].apply(lambda x: len(x)))
     
-    n_batch = int((dataset.shape[0]-1)/batch_size+1)-1 ################################################################################### -1
+    n_batch = int((dataset.shape[0]-1)/batch_size+1)-1 ############################################## -1
     
     for i in range(n_batch):
         batch_df = dataset.iloc[i*batch_size: (i+1)*batch_size]
@@ -248,7 +239,6 @@ if __name__ == '__main__':
     dictionary = None
     train_dataset, dictionary = arrange_train(train, config.params, dictionary)
     test_dataset, dictionary = arrange_test(test, config.params, dictionary)
-    # make_batch(dataset, dictionary, config.params)
     save_dataset(args.save_dir+'/train.csv', train_dataset)
     save_dataset(args.save_dir+'/test.csv', test_dataset)
     save_dictionary(args.save_dir+'/dictionary.pkl')
