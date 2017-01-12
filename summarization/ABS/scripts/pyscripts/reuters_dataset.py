@@ -35,7 +35,7 @@ def load_rawdata(data_paths):
     print('data shape', data.shape)
     # print(data)
 
-    # data = data.iloc[: 2000] #################################################################################################3
+    # data = data.iloc[: 500] #################################################################################################3
     
     return data
 
@@ -93,9 +93,9 @@ def tokenize_title(series, window_size):
 def labeling(token, dictionary):
     return list(map(lambda x: dictionary.token2id[x], token))
       
-def split_yc_t(arr, window_size):    
-    x_labels = arr[0]
-    yc_and_t_labels = arr[1]
+def split_yc_t(arr, window_size):
+    x_labels = list(map(int, arr[0].replace('[', '').replace(']', '').split(',')))
+    yc_and_t_labels = list(map(int, arr[1].replace('[', '').replace(']', '').split(',')))
     for i in range(len(yc_and_t_labels[: -window_size])):
         yc_labels = yc_and_t_labels[i: i+window_size]
         t_label = yc_and_t_labels[i+window_size]
@@ -107,8 +107,6 @@ def split_yc_t(arr, window_size):
     result.reset_index(inplace=True, drop=True)
     result.columns = ['x_labels', 'yc_labels', 't_label']
 
-    # print(result)
-    
     return result.values
 
 def filtering(dataset):
@@ -127,8 +125,6 @@ def arrange_train(dataset, params, dictionary):
 
     dataset.reset_index(inplace=True, drop=True)
     
-    # print(dataset)
-
     if dictionary:
         dictionary.add_documents(dataset.values.flatten())
     else:
@@ -142,26 +138,9 @@ def arrange_train(dataset, params, dictionary):
 
     dataset = filtering(dataset)
 
-    # print(dataset)
-
     dataset = dataset.sort_values('x_length')
     dataset.reset_index(inplace=True, drop=True)
-    
-    # pool = Pool()
-    # results = pool.map(functools.partial(split_yc_t,
-    #                                      window_size=window_size,
-    #                                      dictionary=dictionary), dataset.values)
-    # for i, result in enumerate(results):
-    #     if i == 0:
-    #         results = result
-    #     else:
-    #         results = np.r_[results, result]   
-                   
-    # dataset = pd.DataFrame(results, columns=['x_labels', 'yc_labels', 't_label']
-    # ).assign(x_length=lambda dataset: dataset['x_labels'].apply(lambda x: len(x)))
 
-    # print(dataset)
-    
     return dataset, dictionary
 
 def arrange_test(dataset, params, dictionary):
@@ -175,8 +154,6 @@ def arrange_test(dataset, params, dictionary):
     )[['x_tokens', 't_tokens']]
 
     dataset.reset_index(inplace=True, drop=True)
-    
-    # print(dataset)
 
     if dictionary:
         dictionary.add_documents(dataset.values.flatten())
@@ -192,79 +169,47 @@ def arrange_test(dataset, params, dictionary):
     dataset = filtering(dataset)
     dataset = dataset.drop(['x_length', 't_length'], axis=1)
 
-    # print(dataset)
-    
     return dataset, dictionary
 
 def pad_x(x_labels, x_max_length, symbol_ids):
-    # if len(x_labels) != x_max_length:
-    #     print(x_max_length-len(x_labels))
-    #     print(x_labels + [dictionary.token2id['EOS']]*(x_max_length-len(x_labels)))
-    x_labels = list(map(int, x_labels.replace('[', '').replace(']', '').split(',')))
     return x_labels + [symbol_ids['EOS']]*(x_max_length-len(x_labels))
-    #return np.r_[x_labels, np.array([dictionary.token2id['EOS']]*(x_max_length-len(x_labels)))]
-   
-def list_yc_t(yc_and_t_labels):
-    return list(map(int, yc_and_t_labels.replace('[', '').replace(']', '').split(',')))
-    
-def make_p(x_length, x_max_length):
-    return [1.0/x_length]*x_length + [0.0]*(x_max_length-x_length)
-                                           
 
-def make_batch(dataset, symbol_ids, params, seed):
+def make_p(x_length, x_max_length):
+    return [1.0/x_length]*x_length + [0.0]*(x_max_length-x_length)                                     
+
+def make_batch(dataset, symbol_ids, params):
     batch_size = params.batch_size
     window_size =params.window_size
-    slice_data_size = int(config.params.batch_size // dataset['t_length'].mean())
-    n_slice_data = int((dataset.shape[0]-1)/slice_data_size+1)
     
-    list_batch = []
+    pool = Pool(8)
+    results = pool.map(functools.partial(split_yc_t,
+                                         window_size=window_size), dataset[['x_labels', 'yc_and_t_labels']].values)
+    pool.close()
     
-    for i in range(n_slice_data):
-        rng = np.random.RandomState(seed)
-        batch_df = dataset.iloc[i*slice_data_size: (i+1)*slice_data_size]
+    for j, result in enumerate(results):
+        if j == 0:
+            results = result
+        else:
+            results = np.r_[results, result] 
+            
+    dataset = pd.DataFrame(results, columns=['x_labels', 'yc_labels', 't_label'])
+    dataset = dataset.assign(x_length=lambda dataset: dataset['x_labels'].apply(lambda x: len(x)))
+    
+    n_batch = int((dataset.shape[0]-1)/batch_size+1)-1 ################################################################################### -1
+    
+    for i in range(n_batch):
+        batch_df = dataset.iloc[i*batch_size: (i+1)*batch_size]
         x_max_length = batch_df['x_length'].max()
-
         batch_df = batch_df.assign(x_labels_padded=lambda batch_df: batch_df['x_labels'].apply(functools.partial(pad_x,
                                                                                                                  x_max_length=x_max_length,
                                                                                                                  symbol_ids=symbol_ids)),
-                                   list_yc_and_t_labels=lambda batch_df: batch_df['yc_and_t_labels'].apply(list_yc_t)
-        ).drop(['x_labels', 'yc_and_t_labels'], axis=1
-        ).rename(columns={'x_labels_padded': 'x_labels', 'list_yc_and_t_labels': 'yc_and_t_labels'}
-        ).drop(['x_length', 't_length'], axis=1
-        )[['x_labels', 'yc_and_t_labels']]
+        ).drop(['x_labels', 'x_length'], axis=1
+        ).rename(columns={'x_labels_padded': 'x_labels'}
+        )[['x_labels', 'yc_labels', 't_label']]
         
-        # batch_df = batch_df.assign(p=lambda batch_df: batch_df['x_length'].apply(functools.partial(make_p,
-        #                                                                                            x_max_length=x_max_length))
-        # ).drop('x_length', axis=1)
-
-        # print(batch_df.ix[0, 'x_labels'])
-        # print(batch_df.assign(x_length=lambda batch_df: batch_df['x_labels'].apply(lambda x: len(x))))
-
-        pool = Pool(4)
-        results = pool.map(functools.partial(split_yc_t,
-                                             window_size=window_size), batch_df.values)
-        pool.close()
-        for j, result in enumerate(results):
-            if j == 0:
-                results = result
-            else:
-                results = np.r_[results, result] 
-
-        batch_df = pd.DataFrame(results, columns=['x_labels', 'yc_labels', 't_label'])
-                
-        idx_arr = batch_df.index.values
-        if batch_size <= len(idx_arr):
-            idx_arr = rng.choice(idx_arr, batch_size, replace=False)
-        while batch_size > len(idx_arr):
-            idx_arr =  np.r_[idx_arr, rng.choice(idx_arr, min(len(idx_arr), batch_size-len(idx_arr)), replace=False)]
-
-        batch_df = batch_df.iloc[idx_arr]
-
-        # print(batch_df.assign(x_length=lambda batch_df: batch_df['x_labels'].apply(lambda x: len(x))))
-
-        # print(batch_df)
+        # print(batch_df.assign(length=lambda batch_df: batch_df['x_labels'].apply(lambda x: len(x))))
         
-        yield i, n_slice_data, batch_df
+        yield i, n_batch, batch_df
    
 
 def save_dataset(path, dataset):

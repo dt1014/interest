@@ -16,7 +16,7 @@ else
 fi
 
 
-MODEL_DIR='../result/model/reuters/'
+MODEL_DIR='../result/models/reuters'
 mkdir -p ${MODEL_DIR}
 python pyscripts/train_ABS.py \
 	   --dataset_path ${REUTERS_DATASET_DIR}/train.csv \
