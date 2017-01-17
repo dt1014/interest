@@ -33,9 +33,9 @@ fi
 
 
 MODEL_DIR='../result/models'
-rm -r ${MODEL_DIR}
 mkdir -p ${MODEL_DIR}
 
+export CUDA_VISIBLE_DEVICES='1'
 python pyscripts/train_ABS.py \
 	   --batch_path ${DATASET_DIR}/batch.pkl \
 	   --dictionary_path ${DATASET_DIR}/dictionary.pkl \

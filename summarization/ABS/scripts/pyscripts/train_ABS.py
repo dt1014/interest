@@ -42,7 +42,7 @@ else:
 tf.set_random_seed(0)
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
-# sess.run(tf.inittialize_all_variables()) # for lower tf version
+# sess.run(tf.initialize_all_variables()) # for lower tf version
 save_vals = {'E': model.E,
              'U_w': model.U_w,
              'U_b': model.U_b,
@@ -65,12 +65,15 @@ with open(log_path, 'w') as f_log:
 ### dataのload  ### 
 with open(args.batch_path, 'rb') as f_batch:
     list_batch = pickle.load(f_batch)
-
+    
+seed = 0
 for i in range(config.params.epoch):
     print('epoch: %d'%(i+1))
     accuracy = 0
-    for j, batch in enumerate(list_batch):
-        print(batch)
+    rng = np.random.RandomState(seed) 
+    perm = rng.permutation(len(list_batch))
+    for j, index in enumerate(perm):
+        batch = list_batch[index]
         sys.stdout.write('\r  batch: %5d (/%5d)'%(j+1, len(list_batch)))
         x = np.array(list(batch['x_labels'].values)).astype(np.int32)
         y_c = np.array(list(batch['yc_labels'].values)).astype(np.int32)
@@ -78,9 +81,13 @@ for i in range(config.params.epoch):
         t_onehot = np.zeros((config.params.batch_size, config.params.vocab_size))
         t_onehot[np.arange(config.params.batch_size), t] = 1
         accuracy += model.train(sess, x, y_c, t_onehot)
+        if (j+1) % 1000 == 0:
+            print()
+            print('  accuracy: %f'%(accuracy/(j+1))) 
     print()
-    print('  accuracy: %f'%(accuracy/(j+1)))      
-    train_log.append('%d,%f'%(i, accuracy/(j+1)))
+    print('accuracy: %f'%(accuracy/(j+1)))
+    with open(log_path, 'a') as f_log:
+        f_log.write('%d,%f\n'%(i, accuracy/(j+1)))
     
     save_dir = args.save_dir+'/epoch%d'%(i+1)
     if not os.path.exists(save_dir):
@@ -88,4 +95,5 @@ for i in range(config.params.epoch):
     save_path = saver.save(sess, save_dir+'/model.ckpt')
     print('  Model saved in file: %s' % save_path)
 
-
+    seed += 1
+    
