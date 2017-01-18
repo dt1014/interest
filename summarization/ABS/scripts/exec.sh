@@ -10,26 +10,26 @@ DICTIONARY_DIR='../data/dictionary'
 mkdir -p ${DATASET_DIR}
 mkdir -p ${DICTIONARY_DIR}
 
-if [ -f ${DICTIONARY_DIR}/tokens.csv -a -f ${DICTIONARY_DIR}/alldata.dict -a -f ${DICTIONARY_DIR}/bow.pkl ]
-then
-	echo 'skip make dictionary' 
-else
-	python pyscripts/make_dictionary.py \
-		   --reuters_paths_template ${REUTERS_PATHS_TEMPLATE} \
-		   --from_db_path ${FROM_DB_DIR}/sources.pkl \
-		   --save_dir ${DICTIONARY_DIR}
-fi
+# if [ -f ${DICTIONARY_DIR}/tokens.csv -a -f ${DICTIONARY_DIR}/alldata.dict -a -f ${DICTIONARY_DIR}/bow.pkl ]
+# then
+# 	echo 'skip make dictionary' 
+# else
+# 	python pyscripts/make_dictionary.py \
+# 		   --reuters_paths_template ${REUTERS_PATHS_TEMPLATE} \
+# 		   --from_db_path ${FROM_DB_DIR}/sources.pkl \
+# 		   --save_dir ${DICTIONARY_DIR}
+# fi
 
-if [ -f ${DATASET_DIR}/train.csv -a -f ${DATASET_DIR}/test.csv -a -f ${DATASET_DIR}/dictionary.pkl -a -f ${DATASET_DIR}/batch.pkl ]
-then
-	echo 'skip making dataset'
-else
-	python pyscripts/dataset.py \
-		   --reuters_paths_template ${REUTERS_PATHS_TEMPLATE} \
-		   --from_db_path ${FROM_DB_DIR}/sources.pkl \
-		   --dictionary_dir ${DICTIONARY_DIR} \
-		   --save_dir ${DATASET_DIR}  
-fi
+# if [ -f ${DATASET_DIR}/train.csv -a -f ${DATASET_DIR}/test.csv -a -f ${DATASET_DIR}/dictionary.pkl -a -f ${DATASET_DIR}/batch.pkl ]
+# then
+# 	echo 'skip making dataset'
+# else
+# 	python pyscripts/dataset.py \
+# 		   --reuters_paths_template ${REUTERS_PATHS_TEMPLATE} \
+# 		   --from_db_path ${FROM_DB_DIR}/sources.pkl \
+# 		   --dictionary_dir ${DICTIONARY_DIR} \
+# 		   --save_dir ${DATASET_DIR}  
+# fi
 
 
 MODEL_DIR='../result/models'

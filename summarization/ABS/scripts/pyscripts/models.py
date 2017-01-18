@@ -69,11 +69,11 @@ class NNLMmodel(object):
         self.prob = tf.nn.softmax(self.prob_from_h + self.prob_from_enc)
 
         # ### for training ###
-        # self.t = tf.cast(tf.placeholder(tf.int32, shape=[batch_size, vocab_size]), tf.float32)
-        # self.cross_entropy = -tf.reduce_sum(self.t * tf.log(self.prob)) 
-        # self.train_step = tf.train.AdamOptimizer(1e-4).minimize(self.cross_entropy)
-        # self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
-        # self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
+        self.t = tf.cast(tf.placeholder(tf.int32, shape=[batch_size, vocab_size]), tf.float32)
+        self.cross_entropy = -tf.reduce_sum(self.t * tf.log(self.prob)) 
+        self.train_step = tf.train.AdamOptimizer(1e-4).minimize(self.cross_entropy)
+        self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         
         
 class ABSmodel(NNLMmodel):
@@ -121,7 +121,6 @@ class ABSmodel(NNLMmodel):
     def train(self, session, x, y_c, t):
         feed_dict = {self.x: x, self.y_c: y_c, self.t: t}
         self.train_step.run(session=session, feed_dict=feed_dict)
-        return self.accuracy.eval(session=session, feed_dict=feed_dict)
 
     
     def rebuild_forward_graph(self, sess, model_path):

@@ -60,7 +60,7 @@ log_path = log_dir+'/train_log.csv'
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 with open(log_path, 'w') as f_log:
-    f_log.write('epoch,accuracy\n')
+    f_log.write('epoch,batch,accuracy\n')
 
 ### dataのload  ### 
 with open(args.batch_path, 'rb') as f_batch:
@@ -80,20 +80,34 @@ for i in range(config.params.epoch):
         t = np.array(list(batch['t_label'].values)).astype(np.int32)
         t_onehot = np.zeros((config.params.batch_size, config.params.vocab_size))
         t_onehot[np.arange(config.params.batch_size), t] = 1
-        accuracy += model.train(sess, x, y_c, t_onehot)
-        if (j+1) % 1000 == 0:
+        model.train(sess, x, y_c, t_onehot)
+        if (j+1) % 5000 == 0: 
             print()
-            print('  accuracy: %f'%(accuracy/(j+1))) 
+            feed_dict={model.x: x, model.y_c: y_c, model.t: t_onehot}
+            accuracy = model.accuracy.eval(session=sess, feed_dict=feed_dict)
+            print('  accuracy: %f'%accuracy)
+            
+            save_dir = args.save_dir+'/epoch%d-batch%d'%(i+1, j+1)
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+            save_path = saver.save(sess, save_dir+'/model.ckpt')
+            print('  Model saved in file: %s' % save_path)
+            
+            with open(log_path, 'a') as f_log:
+                f_log.write('%d,%d,%f\n'%(i+1, j+1, accuracy))
     print()
-    print('accuracy: %f'%(accuracy/(j+1)))
-    with open(log_path, 'a') as f_log:
-        f_log.write('%d,%f\n'%(i, accuracy/(j+1)))
+    feed_dict={model.x: x, model.y_c: y_c, model.t: t_onehot}
+    accuracy = model.accuracy.eval(session=sess, feed_dict=feed_dict)
+    print('  accuracy: %f'%accuracy)
     
-    save_dir = args.save_dir+'/epoch%d'%(i+1)
+    save_dir = args.save_dir+'/epoch%d-batch%d'%(i+1, j+1)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     save_path = saver.save(sess, save_dir+'/model.ckpt')
     print('  Model saved in file: %s' % save_path)
+            
+    with open(log_path, 'a') as f_log:
+        f_log.write('%d,%d,%f\n'%(i+1, j+1, accuracy))
 
     seed += 1
     
