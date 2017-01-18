@@ -1,0 +1,15 @@
+market_prediction/by_news/data
+scraper/news_scraper/output
+**/__pycache__/**
+scraper/debug/
+scraper/output/
+market_prediction/by_news/test/
+useful.md
+summarization/ABS/data
+summarization/ABS/scripts/debug
+**.bk
+summarization/ABS/result/
+
+summarization_using_word2vec/ABS/data
+summarization_using_word2vec/ABS/scripts/debug
+summarization_using_word2vec/ABS/result/
