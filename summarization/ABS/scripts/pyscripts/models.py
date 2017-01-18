@@ -68,12 +68,12 @@ class NNLMmodel(object):
         # p(y_i+1|x, y_c;theta)(V) ~ exp(Vh + Wenc(x, y_c))
         self.prob = tf.nn.softmax(self.prob_from_h + self.prob_from_enc)
 
-        ### for training ###
-        self.t = tf.cast(tf.placeholder(tf.int32, shape=[batch_size, vocab_size]), tf.float32)
-        self.cross_entropy = -tf.reduce_sum(self.t * tf.log(self.prob)) 
-        self.train_step = tf.train.AdamOptimizer(1e-4).minimize(self.cross_entropy)
-        self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
+        # ### for training ###
+        # self.t = tf.cast(tf.placeholder(tf.int32, shape=[batch_size, vocab_size]), tf.float32)
+        # self.cross_entropy = -tf.reduce_sum(self.t * tf.log(self.prob)) 
+        # self.train_step = tf.train.AdamOptimizer(1e-4).minimize(self.cross_entropy)
+        # self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
+        # self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         
         
 class ABSmodel(NNLMmodel):
@@ -160,7 +160,7 @@ class ABSmodel(NNLMmodel):
         
         saver = tf.train.Saver(restore_vals)
         saver.restore(sess, model_path)
-
+        
         self.y_c = tf.placeholder(tf.int32, shape=[window_size]) 
         self.tilde_y_c = tf.reshape(tf.nn.embedding_lookup(self.E, self.y_c), shape=[window_size*embedding_size])
         
@@ -190,14 +190,15 @@ class ABSmodel(NNLMmodel):
         self.enc = tf.matmul(tf.nn.softmax(tf.matmul(self.p_, tf.transpose(self.tilde_x, [1, 0]))), self.x_bar)
         
         self.prob_from_enc = tf.matmul(self.enc, self.W_w) + self.W_b
-
-        self.prob = tf.nn.softmax(self.prob_from_h + self.prob_from_enc)
-        self.t = tf.cast(tf.placeholder(tf.int32, shape=[vocab_size]), tf.float32)
-        self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         
-    
-
+        self.prob = tf.nn.softmax(self.prob_from_h + self.prob_from_enc)
+        self.pred_prob = tf.reduce_max(self.prob, 1)[0]
+        self.pred = tf.argmax(self.prob, 1)[0]
+        
+    def decode(self, session, x, y_c):
+        feed_dict = {self.x: x, self.y_c: y_c}
+        return session.run([self.pred, self.pred_prob, self.prob], feed_dict=feed_dict)
+        
         
 if __name__ == '__main__':
 
