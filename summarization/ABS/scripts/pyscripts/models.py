@@ -74,7 +74,7 @@ class NNLMmodel(object):
         self.train_step = tf.train.AdamOptimizer(1e-4).minimize(self.cross_entropy)
         self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
-        
+    
         
 class ABSmodel(NNLMmodel):
                 
@@ -123,13 +123,15 @@ class ABSmodel(NNLMmodel):
         self.train_step.run(session=session, feed_dict=feed_dict)
 
     
-    def rebuild_forward_graph(self, sess, model_path):
+    def rebuild_graph(self, sess, model_path):
 
+        batch_size = self.params.batch_size
         window_size = self.params.window_size
         vocab_size = self.params.vocab_size
         embedding_size = self.params.embedding_size
         hidden_size = self.params.hidden_size
         smoothing_window_size = self.params.smoothing_window_size
+        variable_init = self.params.variable_init
         
         self.E = tf.Variable(tf.random_uniform([vocab_size, embedding_size], -1.0, 1.0), name='E')
         self.U_w = tf.Variable(tf.truncated_normal((window_size*embedding_size, hidden_size),
@@ -159,40 +161,51 @@ class ABSmodel(NNLMmodel):
         
         saver = tf.train.Saver(restore_vals)
         saver.restore(sess, model_path)
-        
-        self.y_c = tf.placeholder(tf.int32, shape=[window_size]) 
-        self.tilde_y_c = tf.reshape(tf.nn.embedding_lookup(self.E, self.y_c), shape=[window_size*embedding_size])
-        
-        self.h = tf.nn.tanh(tf.matmul(tf.expand_dims(self.tilde_y_c, 0), self.U_w) + self.U_b)
-        
+
+        self.y_c = tf.placeholder(tf.int32, shape=[batch_size, window_size]) 
+        self.tilde_y_c = tf.reshape(tf.nn.embedding_lookup(self.E, self.y_c), shape=[batch_size, window_size*embedding_size])
+
+        self.h = tf.nn.tanh(tf.matmul(self.tilde_y_c, self.U_w) + self.U_b)
+
         self.prob_from_h = tf.matmul(self.h, self.V_w) + self.V_b
-        
-        ### encoder ###
-        
-        self.x = tf.placeholder(tf.int32, shape=[None])
 
-        self.tilde_y_c_dash = tf.reshape(tf.nn.embedding_lookup(self.G, self.y_c), shape=[window_size*embedding_size])
+
+        self.x = tf.placeholder(tf.int32, shape=[batch_size, None])
+
+
+        self.tilde_y_c_dash = tf.reshape(tf.nn.embedding_lookup(self.G, self.y_c), shape=[batch_size, window_size*embedding_size])
+
         self.tilde_x = tf.cast(tf.nn.embedding_lookup(self.F, self.x), tf.float32)
-        
-        self.p_ = tf.matmul(tf.expand_dims(self.tilde_y_c_dash, 0), self.P)
 
-        initializer = [tf.reshape(tf.slice(self.tilde_x, [0, 0], [1, -1]), [hidden_size])] * (smoothing_window_size+1) 
+        self.p_ = tf.matmul(self.tilde_y_c_dash, self.P)
+
+        self.tilde_x = tf.transpose(self.tilde_x, [1, 0, 2])
+
+        initializer = [tf.reshape(tf.slice(self.tilde_x, [0, 0, 0], [1, -1, -1]), [batch_size, hidden_size])] * (smoothing_window_size+1)
         x_bar_forward = tf.scan(lambda a, x: a[1: -1] + [x] + [sum(a[: -1] + [x])], elems=self.tilde_x, initializer=initializer)[-1]
         
-        reverse_tilde_x = tf.reverse(self.tilde_x, [True, False]) 
+        reverse_tilde_x = tf.reverse(self.tilde_x, [True, False, False])
         
-        initializer = [tf.reshape(tf.slice(reverse_tilde_x, [0, 0], [1, -1]), [hidden_size])] * (smoothing_window_size+1)
-        x_bar_backward = tf.reverse(tf.scan(lambda a, x: a[1: -1] + [x] + [sum(a[: -1] + [x])], elems=reverse_tilde_x, initializer=initializer)[-1], [True, False])
+        initializer = [tf.reshape(tf.slice(reverse_tilde_x, [0, 0, 0], [1, -1, -1]), [batch_size, hidden_size])] * (smoothing_window_size+1)
+        x_bar_backward = tf.reverse(tf.scan(lambda a, x: a[1: -1] + [x] + [sum(a[: -1] + [x])], elems=reverse_tilde_x, initializer=initializer)[-1], [True, False, False])
 
-        self.x_bar = (x_bar_forward + x_bar_backward - self.tilde_x) / (2*smoothing_window_size+1)
+        self.x_bar = tf.transpose((x_bar_forward + x_bar_backward - self.tilde_x), [1, 0, 2]) / (2*smoothing_window_size+1)
         
-        self.enc = tf.matmul(tf.nn.softmax(tf.matmul(self.p_, tf.transpose(self.tilde_x, [1, 0]))), self.x_bar)
+        self.tilde_x = tf.transpose(self.tilde_x, [1, 0, 2])
+
+        self.enc = tf.reshape(tf.scan(lambda a, x: tf.matmul(tf.nn.softmax(tf.matmul(tf.expand_dims(x[0], 0), x[1])), x[2]),
+                                      elems=(self.p_, tf.transpose(self.tilde_x, [0, 2, 1]), self.x_bar),
+                                      initializer=tf.zeros([1, hidden_size])), [batch_size, hidden_size])
         
         self.prob_from_enc = tf.matmul(self.enc, self.W_w) + self.W_b
-        
+
         self.prob = tf.nn.softmax(self.prob_from_h + self.prob_from_enc)
         self.pred_prob = tf.reduce_max(self.prob, 1)[0]
         self.pred = tf.argmax(self.prob, 1)[0]
+
+    def rebuild_forward_graph(self, sess, model_path):
+        self.params.batch_size = 1
+        self.rebuild_graph(sess, model_path)
         
     def decode(self, session, x, y_c):
         feed_dict = {self.x: x, self.y_c: y_c}

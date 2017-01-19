@@ -56,19 +56,19 @@ for row in dataset.iterrows():
     t = np.array(row[1]['yc_and_t_labels']).astype(np.int32)
     x_words = ' '.join([id2token[a] for a in x])
     t_words = ' '.join([id2token[a] for a in t])
+    x = x[np.newaxis, :]
     print('x words: ', x_words)
     print('t words: ', t_words)
     y_c = np.array([token2id['<S>']]*config.params.window_size).astype(np.int32)
+    y_c = y_c[np.newaxis, :]
     print('---------------------------------')
     while output[-1] != token2id['<EOS>']:
-        y_c_words = ' '.join([id2token[a] for a in y_c])
-        # print('  yc words: ', y_c_words)
+        y_c_words = ' '.join([id2token[a] for a in np.squeeze(y_c, 0)])
         pred, pred_prob, _ = model.decode(sess, x, y_c)
-        # print('  prediciton probability: ', pred_prob)
-        # print('  prediction word: ', id2token[pred])
         output.append(pred)
         output_prob.append(pred_prob)
-        y_c = np.r_[y_c[1:], np.array([pred])]
+        y_c = np.c_[y_c[:, 1:], np.array([pred])[np.newaxis, :]]
+        
         if len(output) > MAX_OUTPUT_LENGTH:
             output.append(token2id['<EOS>'])
             break
