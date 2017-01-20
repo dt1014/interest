@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from models import ABSmodel
+from models_no_embedding_layer import ABSmodel
 import dataset
 import id2vector
 
