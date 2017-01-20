@@ -203,6 +203,13 @@ class ABSmodel(NNLMmodel):
         self.pred_prob = tf.reduce_max(self.prob, 1)[0]
         self.pred = tf.argmax(self.prob, 1)[0]
 
+        # ### for training ###
+        self.t = tf.cast(tf.placeholder(tf.int32, shape=[batch_size, vocab_size]), tf.float32)
+        self.cross_entropy = -tf.reduce_sum(self.t * tf.log(self.prob))
+        self.train_step = tf.train.AdamOptimizer(1e-4).minimize(self.cross_entropy)
+        self.correct_prediction = tf.equal(tf.argmax(self.prob, 1), tf.argmax(self.t, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
+
     def rebuild_forward_graph(self, sess, model_path):
         self.params.batch_size = 1
         self.rebuild_graph(sess, model_path)
