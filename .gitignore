@@ -9,7 +9,5 @@ summarization/ABS/data
 summarization/ABS/scripts/debug
 **.bk
 summarization/ABS/result/
-
-summarization_using_word2vec/ABS/data
-summarization_using_word2vec/ABS/scripts/debug
-summarization_using_word2vec/ABS/result/
+summarization/ABS/result_plus_using_word2vec
+summarization/ABS/result_using_word2vec
