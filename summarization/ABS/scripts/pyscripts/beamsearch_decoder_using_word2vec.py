@@ -33,7 +33,7 @@ args = parser.parse_args()
 # model_path = '../result_using_word2vec/models/epoch7-batch10000/model.ckpt'
 model_path = '../result_using_word2vec/models/epoch15-batch10000/model.ckpt'
 
-dataset_path = '../data/dataset/train.csv' #################################### test.csv
+dataset_path = '../data/dataset/test.csv' #################################### test.csv
 w2v_path = '../data/entity_vector/entity_vector.model.bin'
 
 dictionary_path = '../data/dataset/dictionary.pkl'
@@ -45,7 +45,7 @@ vocab_size = len(list(token2id.keys()))
 config.params.vocab_size = vocab_size
 
 print('loading dataset...')
-dataset = dataset.str2list(dataset.load_dataset(dataset_path, 1, 100))
+dataset = dataset.str2list(dataset.load_dataset(dataset_path, 1, 100000))
 
 print('loading word2vec model...')
 w2v_model = Word2Vec.load_word2vec_format(w2v_path, binary=True)
