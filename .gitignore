@@ -5,6 +5,7 @@ scraper/debug/
 scraper/output/
 market_prediction/by_news/test/
 useful.md
+db.md
 summarization/ABS/data
 summarization/ABS/scripts/debug
 **.bk
