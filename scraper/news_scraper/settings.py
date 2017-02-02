@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+
+# For DataBase
+POSTGRES_HOSTNAME = 'localhost'
+POSTGRES_DATABASE = 'news'
+
 # Scrapy settings for news_scraper project
 #
 # For simplicity, this file contains only settings considered important or
@@ -19,7 +24,7 @@ NEWSPIDER_MODULE = 'news_scraper.spiders'
 #USER_AGENT = 'news_scraper (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True ############################################################
+ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -27,8 +32,8 @@ ROBOTSTXT_OBEY = True ##########################################################
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 5############################################################
-RANDOMIZE_DOWNLOAD_DELAY = True ############################################################
+DOWNLOAD_DELAY = 5
+RANDOMIZE_DOWNLOAD_DELAY = True
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -66,7 +71,7 @@ RANDOMIZE_DOWNLOAD_DELAY = True ################################################
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'news_scraper.pipelines.ReutersScraperPipeline': 800,
+    'news_scraper.pipelines.ToPostgreSQLPipeline': 800,
 }
 
 
