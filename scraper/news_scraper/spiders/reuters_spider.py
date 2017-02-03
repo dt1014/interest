@@ -20,11 +20,11 @@ class ReutersSpider(CrawlSpider):
     start_urls = ['http://internal.jp.reuters.com']
     start_urls += ['http://internal.jp.reuters.com/search/news?sortBy=&dateRange=&blob=%d'%x for x in range(1990, 2017)]
     
-    rules = [Rule(LinkExtractor(deny=['http://internal.jp.reuters.com/%s.*$'
+    rules = [Rule(LinkExtractor(deny=['http://(internal.)?jp.reuters.com/(%s).*$'
                                       % '|'.join(['video', 'info', 'tools', 'article', 'investing'])])),
-             Rule(LinkExtractor(allow=['http://internal.jp.reuters.com/%s/$'
+             Rule(LinkExtractor(allow=['http://(internal.)?jp.reuters.com/(%s)/$'
                                        % '|'.join(['investing', 'investing/news'])])),
-             Rule(LinkExtractor(allow=['http://internal.jp.reuters.com/article.*'],
+             Rule(LinkExtractor(allow=['http://(internal.)?jp.reuters.com/article.*'],
                                 deny=['^.*\?pageNumber=([2-9]|[1-9][0-9]).*$', '^.*\?sp=true.+$'],
                                 process_value=process_for_multi_pages),
                   callback='parse_articles',
