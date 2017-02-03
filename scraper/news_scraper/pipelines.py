@@ -56,8 +56,9 @@ class ToPostgreSQLPipeline(object):
                                                               '%Y年 %m月 %d日 %H:%M JST')
                 article = tables.ReutersArticle(**item)
                 session.add(article)
+                self.logger.info('save this item to postgres: <%s>'%item['URL'])
             else:
-                self.logger.info('this item exists: <%s>'%item['URL'])
+                self.logger.info('skip saving this item: <%s>'%item['URL'])
 
 class ToFileBasePipeline(object):
     '''
