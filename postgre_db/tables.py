@@ -7,7 +7,7 @@ class ReutersArticle(Base):
     __tablename__ = 'reuters'
 
     ID = Column('id', Integer, primary_key=True)
-    URL = Column('url', String(256))
+    URL = Column('url', Text())
     category = Column('category', String(63))
     title = Column('title', String(63))
     content = Column('content', Text())
