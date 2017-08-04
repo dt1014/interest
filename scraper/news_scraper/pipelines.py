@@ -36,30 +36,32 @@ class ToPostgreSQLPipeline(object):
         
     def process_item(self, item, spider):
         if spider.name == 'reuters':
-            self.process_reuters_item(item, spider)
+            self.add_item(item, spider, tables.ReutersArticle)
+        elif spider.name == 'bbc':
+            self.add_item(item, spider, tables.BBCArticle)
 
-
-    def process_reuters_item(self, item, spider):
+    def add_item(self, item, spider, articleClass):
 
         with operation.session_scope(self.session_maker) as session:
-            table = tables.ReutersArticle
+            table = articleClass
             exist = session.query(table).filter_by(ID=item['ID']).first()
 
             if not exist:
                 print('*'*100)
                 for key, val in item.items():
-                    if key is not 'content':
+                    if key is not 'content' or key is not 'introduction':
                         print('%-20s: '%key, val)
                 item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
                                                                  '%Y年 %m月 %d日 %H:%M JST')
                 item['scraping_datetime'] = datetime.strptime(item['scraping_datetime'],
                                                               '%Y年 %m月 %d日 %H:%M JST')
-                article = tables.ReutersArticle(**item)
+                article = articleClass(**item)
                 session.add(article)
                 self.logger.info('save this item to postgres: <%s>'%item['URL'])
             else:
                 self.logger.info('skip saving this item: <%s>'%item['URL'])
 
+                
 class ToFileBasePipeline(object):
     '''
     not 汎用

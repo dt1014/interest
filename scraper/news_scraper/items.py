@@ -2,7 +2,7 @@
 
 import scrapy
 
-class NewsItem(scrapy.Item):
+class ReutersItem(scrapy.Item):
     URL = scrapy.Field()
     ID = scrapy.Field()
     category = scrapy.Field()
@@ -11,3 +11,11 @@ class NewsItem(scrapy.Item):
     publication_datetime = scrapy.Field()
     scraping_datetime = scrapy.Field()
    
+class BBCItem(scrapy.Item):
+    URL = scrapy.Field()
+    ID = scrapy.Field()
+    title = scrapy.Field()
+    introduction = scrapy.Field()
+    content = scrapy.Field()
+    publication_datetime = scrapy.Field()
+    scraping_datetime = scrapy.Field()

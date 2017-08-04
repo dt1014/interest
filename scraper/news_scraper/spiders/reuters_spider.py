@@ -6,7 +6,7 @@ import scrapy
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 
-from news_scraper.items import NewsItem
+from news_scraper.items import ReutersItem
 
 def process_for_multi_pages(value):
     if '?sp=true' in value:
@@ -33,7 +33,7 @@ class ReutersSpider(CrawlSpider):
     
     def parse_articles(self, response):
         url = response.url
-        item = NewsItem()
+        item = ReutersItem()
         item['URL'] = url
         m = re.search('(idJP[^\?]*)', url)
         if m:
@@ -49,5 +49,5 @@ class ReutersSpider(CrawlSpider):
         item['scraping_datetime'] = datetime.now().strftime('%Y年 %m月 %d日 %H:%M JST')
 
         self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
-        
+
         return item
