@@ -12,3 +12,4 @@ summarization/ABS/scripts/debug
 summarization/ABS/result/
 summarization/ABS/result_plus_using_word2vec
 summarization/ABS/result_using_word2vec
+scraper/log
