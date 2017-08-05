@@ -14,6 +14,20 @@ db_dir_name = os.path.normpath(os.path.join(my_dir, '../../'))
 sys.path.append(db_dir_name)
 from postgre_db import operation, tables
 
+class ForDebugPipeline(object):
+
+    def process_item(self, item, spider):
+        if len(item['title']) == 0:
+            self.logger.info('save this item to postgres: <%s>'%item['URL'])
+            raise DropItem('drop item')
+        print('*'*100)
+        for key, val in item.items():
+            if 'datetime' in key:
+                val = val.strftime('%Y-%m-%d %H:%M:%S')
+            
+            if key is not 'content' and key is not 'introduction':                
+                print('%-20s: '%key, val)
+
 class ToPostgreSQLPipeline(object):
     def __init__(self, postgres_host, postgres_db):
         self.postgres_host = postgres_host
@@ -35,13 +49,16 @@ class ToPostgreSQLPipeline(object):
         self.session.close()
         
     def process_item(self, item, spider):
+        if len(item['title']) == 0:
+            raise DropItem()
         if spider.name == 'reuters':
             self.add_item(item, spider, tables.ReutersArticle)
         elif spider.name == 'bbc':
             self.add_item(item, spider, tables.BBCArticle)
+        elif spider.name == 'itmedia':
+            self.add_item(item, spider, tables.ITMediaArticle)
 
     def add_item(self, item, spider, articleClass):
-
         with operation.session_scope(self.session_maker) as session:
             table = articleClass
             exist = session.query(table).filter_by(ID=item['ID']).first()
@@ -49,12 +66,9 @@ class ToPostgreSQLPipeline(object):
             if not exist:
                 print('*'*100)
                 for key, val in item.items():
-                    if key is not 'content' or key is not 'introduction':
+                    if key is not 'content' and key is not 'introduction':
                         print('%-20s: '%key, val)
-                item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
-                                                                 '%Y年 %m月 %d日 %H:%M JST')
-                item['scraping_datetime'] = datetime.strptime(item['scraping_datetime'],
-                                                              '%Y年 %m月 %d日 %H:%M JST')
+        
                 article = articleClass(**item)
                 session.add(article)
                 self.logger.info('save this item to postgres: <%s>'%item['URL'])
