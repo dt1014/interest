@@ -19,3 +19,14 @@ class BBCItem(scrapy.Item):
     content = scrapy.Field()
     publication_datetime = scrapy.Field()
     scraping_datetime = scrapy.Field()
+   
+class ITMediaItem(scrapy.Item):
+    URL = scrapy.Field()
+    ID = scrapy.Field()
+    category = scrapy.Field()
+    page_count = scrapy.Field()
+    title = scrapy.Field()
+    introduction = scrapy.Field()
+    content = scrapy.Field()
+    publication_datetime = scrapy.Field()
+    scraping_datetime = scrapy.Field()
