@@ -24,8 +24,6 @@ class BBCSpider(CrawlSpider):
                             
     def parse_articles(self, response):
         url = response.url
-        self.logger.info('***'*30)
-        self.logger.info(url)
         item = BBCItem()
         item['URL'] = url
         m = re.search('(features-and-analysis-\d+|\d+)', url)
@@ -42,11 +40,11 @@ class BBCSpider(CrawlSpider):
             item['content'] = ''.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="story-body"]/p//text()').extract()])
         
         item['publication_datetime'] = response.xpath('//*[@class="date date--v2"]//text()').extract()[0]
-
-        item['scraping_datetime'] = datetime.now().strftime('%Y年 %m月 %d日 %H:%M JST')
+        item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
+                                                         '%Y年%m月%d日')    
+        item['scraping_datetime'] = datetime.now()
+        
         self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
 
-        print(item)
-        
         return item
   
