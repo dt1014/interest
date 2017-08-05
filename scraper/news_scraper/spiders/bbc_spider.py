@@ -38,6 +38,9 @@ class BBCSpider(CrawlSpider):
         item['title'] = response.xpath('//title/text()').extract_first().replace('\u3000', ' ')
         item['introduction'] = ''.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="story-body__introduction"]//text()').extract()])
         item['content'] = ''.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="story-body__inner"]/p//text()').extract()])
+        if len(item['content']) == 0:
+            item['content'] = ''.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="story-body"]/p//text()').extract()])
+        
         item['publication_datetime'] = response.xpath('//*[@class="date date--v2"]//text()').extract()[0]
 
         item['scraping_datetime'] = datetime.now().strftime('%Y年 %m月 %d日 %H:%M JST')
