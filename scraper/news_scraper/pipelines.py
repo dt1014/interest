@@ -32,6 +32,12 @@ class ToPostgreSQLPipeline(object):
     def __init__(self, postgres_host, postgres_db):
         self.postgres_host = postgres_host
         self.postgres_db = postgres_db
+
+        self.name_table_dic = {'reuters': tables.ReutersArticle,
+                               'bbc': tables.BBCArticle,
+                               'itmedia': tables.ITMediaArticle,
+                               'gigazie': tables.GigazineArticle}
+        
         self.logger = logging.getLogger(name='pipeline')
 
     @classmethod
@@ -51,12 +57,9 @@ class ToPostgreSQLPipeline(object):
     def process_item(self, item, spider):
         if len(item['title']) == 0:
             raise DropItem()
-        if spider.name == 'reuters':
-            self.add_item(item, spider, tables.ReutersArticle)
-        elif spider.name == 'bbc':
-            self.add_item(item, spider, tables.BBCArticle)
-        elif spider.name == 'itmedia':
-            self.add_item(item, spider, tables.ITMediaArticle)
+        
+        self.add_item(item, spider , self.name_table_dic[spider.name])
+
 
     def add_item(self, item, spider, articleClass):
         with operation.session_scope(self.session_maker) as session:
