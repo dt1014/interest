@@ -78,7 +78,7 @@ class ITMediaSpider(CrawlSpider):
         item['category'] = url.split('.jp/')[-1].split('/articles')[0]
         item['title'] = response.xpath('//title/text()').extract_first().replace('\u3000', ' ')
         item['introduction'] = ''.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@id="cmsAbstract"]//text()').extract()])
-        item['content'] = ''.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="inner"]//p//text()').extract()])
+        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="inner"]//p//text()').extract()])
 
         for update in response.xpath('//*[@id="update"]//text()').extract():
             try:

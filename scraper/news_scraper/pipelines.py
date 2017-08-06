@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 from datetime import datetime
 import logging
 
@@ -27,6 +28,11 @@ class ForDebugPipeline(object):
             
             if key is not 'content' and key is not 'introduction':                
                 print('%-20s: '%key, val)
+
+        if 'introduction' in item.keys():
+            print(item['introduction'])
+            print()
+        print(re.sub('(<br>){2,}', '<br>', re.sub('\n', '<br>', item['content'])))
 
 class ToPostgreSQLPipeline(object):
     def __init__(self, postgres_host, postgres_db):
@@ -62,6 +68,9 @@ class ToPostgreSQLPipeline(object):
 
 
     def add_item(self, item, spider, articleClass):
+        
+        item['content'] = re.sub('(<br>){2,}', '<br>', re.sub('\n', '<br>', item['content']))
+
         with operation.session_scope(self.session_maker) as session:
             table = articleClass
             exist = session.query(table).filter_by(ID=item['ID']).first()
