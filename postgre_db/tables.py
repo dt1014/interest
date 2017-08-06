@@ -38,3 +38,13 @@ class ITMediaArticle(Base):
     publication_datetime = Column('publication_datetime', DateTime())
     scraping_datetime = Column('scraping_datetime', DateTime())
  
+class GigazineArticle(Base):
+    __tablename__ = 'gigazine'
+
+    ID = Column('id', String(127), primary_key=True)
+    URL = Column('url', Text())
+    tag = Column('tag', String(63))
+    title = Column('title', String(127))
+    content = Column('content', Text())
+    publication_datetime = Column('publication_datetime', DateTime())
+    scraping_datetime = Column('scraping_datetime', DateTime())
