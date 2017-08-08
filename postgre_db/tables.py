@@ -6,7 +6,7 @@ Base = declarative_base()
 class ReutersArticle(Base):
     __tablename__ = 'reuters'
 
-    ID = Column('id', Integer, primary_key=True)
+    ID = Column('id', String(127), primary_key=True)
     URL = Column('url', Text())
     category = Column('category', String(127))
     title = Column('title', String(127))
@@ -44,6 +44,17 @@ class GigazineArticle(Base):
     ID = Column('id', String(127), primary_key=True)
     URL = Column('url', Text())
     tag = Column('tag', String(63))
+    title = Column('title', String(127))
+    content = Column('content', Text())
+    publication_datetime = Column('publication_datetime', DateTime())
+    scraping_datetime = Column('scraping_datetime', DateTime())
+
+class JijiArticle(Base):
+    __tablename__ = 'jiji'
+
+    ID = Column('id', String(127), primary_key=True)
+    URL = Column('url', Text())
+    category = Column('category', String(63))
     title = Column('title', String(127))
     content = Column('content', Text())
     publication_datetime = Column('publication_datetime', DateTime())
