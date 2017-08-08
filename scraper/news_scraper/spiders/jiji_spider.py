@@ -16,7 +16,7 @@ class JijiSpider(CrawlSpider):
     name = 'jiji'
 
     custom_settings = {
-        'DOWNLOAD_DELAY': 0.5, ################################################
+        'DOWNLOAD_DELAY': 4,
         'ROBOTSTXT_OBEY': False
     }
     
@@ -36,20 +36,6 @@ class JijiSpider(CrawlSpider):
                   'https://www.jiji.com/jc/market',
                   'https://www.jiji.com/jc/daily',
                   'https://www.jiji.com/jc/p']
-
-    # # start_urls = ['https://www.jiji.com/jc/p',
-    # #               'https://www.jiji.com/jc/p?id=20170808112310-0024679905']
-    # # start_urls = ['https://www.jiji.com/jc/movie',
-    # #               'https://www.jiji.com/jc/movie?p=mov891-movie03']
-    # start_urls = ['https://www.jiji.com/jc/tsn?&p=20170807-photo1']
-    # # start_urls = ['https://www.jiji.com/jc/pga',
-    # #               'https://www.jiji.com/jc/pga?g=spo&k=0000000008068']
-    # start_urls = ['https://www.jiji.com/jc/market',
-    #              'https://www.jiji.com/jc/market?g=stock']
-    # start_urls = ['https://www.jiji.com/jc/daily',
-    #               'https://www.jiji.com/jc/daily?d=0801']
-    # allowed_domains = ['www.jiji.com'] #####################
-
     
     rules = [Rule(LinkExtractor(deny=[r'https://www\.jiji\.com/(service|c_profile|jinji|topseminar|hall).*$',
                                       r'https://www\.jiji\.com/jc/(v|v[0-9]|d[0-9]|f[0-9]|e|ak|v4|ad|graphics|books|f_mode|calendar|forecast|m_stock|giin|travel|car|score|rio2016).*$']),
@@ -100,17 +86,8 @@ class JijiSpider(CrawlSpider):
                                                                  '%Y-%m-%d %H:%M:%S')
             except IndexError:
                 item['publication_datetime'] = datetime(1, 1, 1) # I dont know
-             
-            print()
-            print('*********************************************************************')
-            print('url     : ', url)
-            print('id      : ', item['ID'])
-            print('category: ', item['category'])
-            print('title   : ', item['title'])
-            print(item['content'])
-            print(item['publication_datetime'])
-            print('*********************************************************************')
-            
+
+                
         elif '/p?' in url or '/pm?' in url:
             if re.search('(list|about)$', url):
                 pass
@@ -130,16 +107,7 @@ class JijiSpider(CrawlSpider):
                                                                      '%Y-%m-%d %H:%M:%S')
                 except IndexError:
                     item['publication_datetime'] = datetime(1, 1, 1) # I dont know
-                    
-                print()
-                print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-                print(url)
-                print(item['ID'])
-                print(item['category'])
-                print(item['title'])
-                print(item['content'])
-                print(item['publication_datetime'])
-                print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+               
 
         elif '/movie?' in url:
             if re.search('(list|about)$', url):
@@ -155,16 +123,6 @@ class JijiSpider(CrawlSpider):
                                                                  + ' ' \
                                                                  + re.search('T(.+)\+', pd).group(1),
                                                                  '%Y-%m-%d %H:%M:%S')
-                
-                print()
-                print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
-                print(url)
-                print(item['ID'])
-                print(item['category'])
-                print(item['title'])
-                print(item['content'])
-                print(item['publication_datetime'])
-                print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
 
             
         elif '/tsn?' in url:
@@ -180,17 +138,8 @@ class JijiSpider(CrawlSpider):
                                                          response.xpath('//*/div[@id="wrapper_premium-photo"]/h1/text()').extract()[0]).group(0)
                 item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
                                                                  '%Y年%m月%d日')
+
                 
-                print()
-                print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-                print(url)
-                print(item['ID'])
-                print(item['category'])
-                print(item['title'])
-                print(item['content'])
-                print(item['publication_datetime'])
-                print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-            
         elif '/market?' in url:
             
             match = re.search('p=(tyo|nyc|ldn)', url)
@@ -209,15 +158,6 @@ class JijiSpider(CrawlSpider):
                 item['publication_datetime'] = datetime.strptime(pd,
                                                                  '%Y-%m-%d-%H-%M')
 
-                print()
-                print('#####################################################################')
-                print('url     : ', url)
-                print('id      : ', item['ID'])
-                print('category: ', item['category'])
-                print('title   : ', item['title'])
-                print(item['content'])
-                print(item['publication_datetime'])
-                print('#####################################################################')
                 
             else:
                 pass
@@ -236,15 +176,6 @@ class JijiSpider(CrawlSpider):
                 item['content'] = re.sub('[\n\t\r\u3000]', '<br>', ''.join([x for x in \
                                                                             response.xpath('//*/div[@class="ArticleText TodayDateArticleText clearfix"]/p/text()').extract()]))
                 
-                print()
-                print('?????????????????????????????????????????????????????????????????????')
-                print('url     : ', url)
-                print('id      : ', item['ID'])
-                print('category: ', item['category'])
-                print('title   : ', item['title'])
-                print(item['content'])
-                print(item['publication_datetime'])
-                print('?????????????????????????????????????????????????????????????????????')
                 
             else:
                 pass
@@ -252,7 +183,8 @@ class JijiSpider(CrawlSpider):
         else:
             pass
 
-        self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
+        if 'title' in item.keys():
+            self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
         
         return item
     
