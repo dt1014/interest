@@ -68,11 +68,10 @@ class ToPostgreSQLPipeline(object):
         self.session.close()
         
     def process_item(self, item, spider):
-        if len(item['title']) == 0:
-            raise DropItem()
-        
-        self.add_item(item, spider , self.name_table_dic[spider.name])
-
+        if not 'title' in item.keys() or len(item['title']) == 0:
+            self.logger.info('drop this item: <%s>'%item['URL'])
+        else:
+            self.add_item(item, spider , self.name_table_dic[spider.name])
 
     def add_item(self, item, spider, articleClass):
         
