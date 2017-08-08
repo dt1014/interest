@@ -46,7 +46,8 @@ class ToPostgreSQLPipeline(object):
         self.name_table_dic = {'reuters': tables.ReutersArticle,
                                'bbc': tables.BBCArticle,
                                'itmedia': tables.ITMediaArticle,
-                               'gigazie': tables.GigazineArticle}
+                               'gigazine': tables.GigazineArticle,
+                               'jiji': tables.JijiArticle}
         
         self.logger = logging.getLogger(name='pipeline')
 
