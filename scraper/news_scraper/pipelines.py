@@ -40,12 +40,16 @@ class ToPostgreSQLPipeline(object):
     def __init__(self, postgres_host, postgres_db):
         self.postgres_host = postgres_host
         self.postgres_db = postgres_db
-
+        
         self.name_table_dic = {'reuters': tables.ReutersArticle,
                                'bbc': tables.BBCArticle,
                                'itmedia': tables.ITMediaArticle,
                                'gigazine': tables.GigazineArticle,
                                'jiji': tables.JijiArticle}
+
+        postgres_url = 'postgres://%s/%s'%(self.postgres_host, self.postgres_db)
+        for key, val in self.name_table_dic.items():
+            operation.checkTable(postgres_url, val)
         
         self.logger = logging.getLogger(name='pipeline')
 
