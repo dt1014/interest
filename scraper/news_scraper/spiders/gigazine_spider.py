@@ -13,7 +13,6 @@ N = 10000
 
 class GigazineSpider(CrawlSpider):
     name = 'gigazine'
-    #http://gigazine.net/news/20101130_alaskan_birds_beak_deformities/
     allowed_domains = ['gigazine.net']
     start_urls = ['http://gigazine.net/']
     date_list = list(takewhile(lambda x: x > datetime(2005, 7, 1), map(lambda x: datetime.today()-timedelta(weeks=x)*4, range(0, N))))
