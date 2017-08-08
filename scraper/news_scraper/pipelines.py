@@ -17,22 +17,26 @@ from postgre_db import operation, tables
 
 class ForDebugPipeline(object):
 
+    def __init__(self):
+        self.counter = 0
+    
     def process_item(self, item, spider):
-        if len(item['title']) == 0:
-            self.logger.info('save this item to postgres: <%s>'%item['URL'])
-            raise DropItem('drop item')
-        print('*'*100)
-        for key, val in item.items():
-            if 'datetime' in key:
-                val = val.strftime('%Y-%m-%d %H:%M:%S')
+        pass
+        # if len(item['title']) == 0:
+        #     self.logger.info('save this item to postgres: <%s>'%item['URL'])
+        #     raise DropItem('drop item')
+        # print('*'*100)
+        # for key, val in item.items():
+        #     if 'datetime' in key:
+        #         val = val.strftime('%Y-%m-%d %H:%M:%S')
             
-            if key is not 'content' and key is not 'introduction':                
-                print('%-20s: '%key, val)
-
-        if 'introduction' in item.keys():
-            print(item['introduction'])
-            print()
-        print(re.sub('(<br>){2,}', '<br>', re.sub('\n', '<br>', item['content'])))
+        #     if key is not 'content' and key is not 'introduction':                
+        #         print('%-20s: '%key, val)
+                
+        # if 'introduction' in item.keys():
+        #     print(item['introduction'])
+        #     print()
+        # print(re.sub('(<br>){2,}', '<br>', re.sub('\n', '<br>', item['content'])))
 
 class ToPostgreSQLPipeline(object):
     def __init__(self, postgres_host, postgres_db):
