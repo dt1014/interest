@@ -44,7 +44,9 @@ class ITMediaSpider(CrawlSpider):
         next_url = response.xpath('//head/link[@rel="next"]/@href').extract()
 
         if len(member_restriction) > 0:
-            yield ITMediaItem()
+            item = ITMediaItem()
+            item['URL'] = response.url
+            yield item
         
         if len(next_url) == 0:
             yield self.parse_article(response)
@@ -94,5 +96,5 @@ class ITMediaSpider(CrawlSpider):
   
     def add_item(self, response):
         item = response.meta['item']
-        item['content'] += ''.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="inner"]//p//text()').extract()])
+        item['content'] += '<br>' + '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@class="inner"]//p//text()').extract()])
         return item
