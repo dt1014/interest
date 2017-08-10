@@ -13,6 +13,11 @@ N = 10000
 
 class GigazineSpider(CrawlSpider):
     name = 'gigazine'
+
+    custom_settings = {
+        'DOWNLOAD_DELAY': 5,
+    }
+    
     allowed_domains = ['gigazine.net']
     start_urls = ['http://gigazine.net/']
     date_list = list(takewhile(lambda x: x > datetime(2005, 7, 1), map(lambda x: datetime.today()-timedelta(weeks=x)*4, range(0, N))))
@@ -28,7 +33,7 @@ class GigazineSpider(CrawlSpider):
         url = response.url
         item = GigazineItem()
         item['URL'] = url
-        item['ID'] = url.split('http://gigazine.net/news/')[1].replace('/', '')
+        item['ID'] = re.search('http://gigazine.net/news/(.+?)(/|$)', url).group(1)
         item['tag'] = ' '.join(response.xpath('//*/div[@class="items"]/p/a//text()').extract())
         item['title'] = response.xpath('//title/text()').extract_first().replace('\u3000', ' ')
         item['content'] = ''.join([x for x in response.xpath('//*[@class="preface"]//text()').extract()])
