@@ -10,6 +10,11 @@ from news_scraper.items import BBCItem
 
 class BBCSpider(CrawlSpider):
     name = 'bbc'
+    
+    custom_settings = {
+        'DOWNLOAD_DELAY': 7,
+    }
+    
     allowed_domains = ['www.bbc.com']
     start_urls = ['http://www.bbc.com/japanese',
                   'http://www.bbc.com/japanese/features_and_analysis']
