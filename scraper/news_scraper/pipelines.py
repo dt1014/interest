@@ -20,6 +20,7 @@ class ForDebugPipeline(object):
         self.counter = 0
     
     def process_item(self, item, spider):
+        pass
         if len(item['title']) == 0:
             self.logger.info('save this item to postgres: <%s>'%item['URL'])
             raise DropItem('drop item')
@@ -46,7 +47,8 @@ class ToPostgreSQLPipeline(object):
                                'itmedia': tables.ITMediaArticle,
                                'gigazine': tables.GigazineArticle,
                                'jiji': tables.JijiArticle,
-                               'sankei': tables.SankeiArticle}
+                               'sankei': tables.SankeiArticle,
+                               'asahi': tables.AsahiArticle}
 
         postgres_url = 'postgres://%s/%s'%(self.postgres_host, self.postgres_db)
         for key, val in self.name_table_dic.items():

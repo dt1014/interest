@@ -59,3 +59,13 @@ class SankeiItem(scrapy.Item):
     content = scrapy.Field()
     publication_datetime = scrapy.Field()
     scraping_datetime = scrapy.Field()
+    
+class AsahiItem(scrapy.Item):
+    URL = scrapy.Field()
+    ID = scrapy.Field()
+    tag = scrapy.Field()
+    title = scrapy.Field()
+    content = scrapy.Field()
+    member = scrapy.Field()
+    publication_datetime = scrapy.Field()
+    scraping_datetime = scrapy.Field()

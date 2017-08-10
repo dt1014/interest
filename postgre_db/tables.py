@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -69,5 +69,17 @@ class SankeiArticle(Base):
     page_count = Column('page_count', String(3))
     title = Column('title', String(127))
     content = Column('content', Text())
+    publication_datetime = Column('publication_datetime', DateTime())
+    scraping_datetime = Column('scraping_datetime', DateTime())
+
+class AsahiArticle(Base):
+    __tablename__ = 'asahi'
+
+    ID = Column('id', String(63), primary_key=True)
+    URL = Column('url', Text())
+    tag = Column('tag', String(63))
+    title = Column('title', String(127))
+    content = Column('content', Text())
+    member = Column('member', Boolean)
     publication_datetime = Column('publication_datetime', DateTime())
     scraping_datetime = Column('scraping_datetime', DateTime())
