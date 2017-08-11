@@ -71,12 +71,12 @@ class JijiSpider(CrawlSpider):
             elif '/article?' in url:
                 item['title'] = response.xpath('//*/div[@class="ArticleTitle"]/h1/text()').extract()[0]
                 item['content'] = re.sub('[\n\t\r\u3000]', '<br>', ''.join([x for x in \
-                                                                            response.xpath('//*/div[@class="ArticleText clearfix"]/p/text()').extract()]))
+                                                                            response.xpath('//*/div[@class="ArticleText clearfix"]/p//text()').extract()]))
                 
             elif '/pga?' in url:
                 item['title'] = response.xpath('//*/div[@class="ArticleTitle"]/h1/text()').extract()[0]
                 item['content'] = re.sub('[\n\t\r\u3000]', '<br>', ''.join([x for x in \
-                                                                            response.xpath('//*/div[@id="pga_article"]/p/text()').extract()]))
+                                                                            response.xpath('//*/div[@id="pga_article"]/p//text()').extract()]))
 
             try:
                 pd = json.loads(response.xpath('//*/script[@type="application/ld+json"]/text()').extract()[0])['datePublished']
@@ -95,9 +95,9 @@ class JijiSpider(CrawlSpider):
                 item['ID'] = 'p-pm' + re.search('(p|pm)\?id=(.+)$', url).group(2)
                 item['category'] = 'p-pm'
                 item['title'] = response.xpath('//*/div[@class="ArticleTitle"]/h1/text()').extract()[0]
-                item['content'] = response.xpath('//*/div[@class="MainPhotoText"]/h2/text()').extract()
+                item['content'] = response.xpath('//*/div[@class="MainPhotoText"]/h2//text()').extract()
                 if len(item['content']) == 0:
-                    item['content'] = response.xpath('//*/div[@class="MainPhotoText"]/p/text()').extract()
+                    item['content'] = response.xpath('//*/div[@class="MainPhotoText"]/p//text()').extract()
                 item['content'] = item['content'][0]
                 try:
                     pd = json.loads(response.xpath('//*/script[@type="application/ld+json"]/text()').extract()[0])['datePublished']
@@ -117,7 +117,7 @@ class JijiSpider(CrawlSpider):
                 item['category'] = 'movie'
                 item['title'] = response.xpath('//*/div[@class="ArticleTitle"]/h1/text()').extract()[0]
                 item['content'] = re.sub('[\n\t\r\u3000]', '<br>', ''.join([x for x in \
-                                                                            response.xpath('//*/div[@class="ArticleText MovieDateArticleText clearfix"]/p/text()').extract()]))
+                                                                            response.xpath('//*/div[@class="ArticleText MovieDateArticleText clearfix"]/p//text()').extract()]))
                 pd = json.loads(response.xpath('//*/script[@type="application/ld+json"]/text()').extract()[0])['datePublished']
                 item['publication_datetime'] = datetime.strptime(re.search('^\d{4}-\d{2}-\d{2}', pd).group(0) \
                                                                  + ' ' \
@@ -133,7 +133,7 @@ class JijiSpider(CrawlSpider):
                 item['category'] = 'tsn'
                 item['title'] = response.xpath('//*/strong[@class="spo_prm-cap-title"]//text()').extract()[0]
                 item['content'] = re.sub('[\n\t\r\u3000]', '<br>', ''.join([x for x in \
-                                                                            response.xpath('//*/div[@id="spo_picture-area"]/p/text()').extract()]))
+                                                                            response.xpath('//*/div[@id="spo_picture-area"]/p//text()').extract()]))
                 item['publication_datetime'] = re.search('(\d{4}年\d{1,2}月\d{1,2}日)', 
                                                          response.xpath('//*/div[@id="wrapper_premium-photo"]/h1/text()').extract()[0]).group(0)
                 item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
@@ -152,7 +152,7 @@ class JijiSpider(CrawlSpider):
                 item['ID'] = item['category'] + '-' + match.group(1)
                 item['title'] = response.xpath('//*/div[@class="MarketArticleText"]/h2/text()').extract()[0]
                 item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in \
-                                               response.xpath('//*/div[@class="MarketArticleText"]/p/text()').extract()])
+                                               response.xpath('//*/div[@class="MarketArticleText"]/p//text()').extract()])
                 pd = re.sub('(年|月|日\s|:)', '-', re.search('\((.+)\)$', item['content']).group(1))
                 item['ID'] += '-' + pd
                 item['publication_datetime'] = datetime.strptime(pd,
@@ -174,7 +174,7 @@ class JijiSpider(CrawlSpider):
                 item['ID'] = item['category'] + '-' + str(year) + today[:2] + today[2:]
                 item['title'] = response.xpath('//*/div[@class="ArticleText TodayDateArticleText clearfix"]/h2/text()').extract()[0]
                 item['content'] = re.sub('[\n\t\r\u3000]', '<br>', ''.join([x for x in \
-                                                                            response.xpath('//*/div[@class="ArticleText TodayDateArticleText clearfix"]/p/text()').extract()]))
+                                                                            response.xpath('//*/div[@class="ArticleText TodayDateArticleText clearfix"]/p//text()').extract()]))
                 
                 
             else:

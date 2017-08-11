@@ -41,7 +41,7 @@ class SankeiSpider(CrawlSpider):
         item['category'] = re.search('http://www.sankei.com/(.+?)/', url).group(1)
         item['page_count'] = 1
         item['title'] = response.xpath('//*/span[@id="__v_content_title__"]//text()').extract_first().replace('\u3000', ' ')
-        item['content'] = re.sub('[\n\r\u3000]', '<br>', '<br>'.join([x for x in response.xpath('//*/div[@class="clearfix"]/p/text()').extract()]))
+        item['content'] = re.sub('[\n\r\u3000]', '<br>', '<br>'.join(response.xpath('//*/div[@class="clearfix"]/p//text()').extract()))
         if '/story/' in url or '/movie/' in url:
             item['publication_datetime'] = datetime.strptime(response.xpath('//*/span[@class="addition"]/time/text()').extract_first(),
                                                              '%Y.%m.%d %H:%M')
@@ -60,7 +60,7 @@ class SankeiSpider(CrawlSpider):
         item['category'] = re.search('http://www.sankei.com/(.+?)/', url).group(1)
         item['page_count'] = 1
         item['title'] = response.xpath('//*/article[@class="modPrint"]/h1/text()').extract_first().replace('\u3000', ' ')
-        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*/article[@class="modPrint"]/p/text()').extract()])
+        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*/article[@class="modPrint"]/p//text()').extract()])
         item['publication_datetime'] = datetime.strptime(response.xpath('//*/article[@class="modPrint"]/time/text()').extract_first(),
                                                          '%Y.%m.%d %H:%M')
         item['scraping_datetime'] = datetime.now()
@@ -105,7 +105,7 @@ class SankeiSpider(CrawlSpider):
         except:
             item['title'] = response.xpath('//*/section[@class="articleText clearfix"]//h1/text()').extract_first().replace('\u3000', ' ')
             
-        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*/div[@class="fontMiddiumText"]/p/text()').extract()])
+        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*/div[@class="fontMiddiumText"]/p//text()').extract()])
         item['publication_datetime'] = datetime.strptime(response.xpath('//*/span[@id="__r_publish_date__"]//text()').extract_first(),
                                                          '%Y.%m.%d %H:%M')
         
@@ -115,5 +115,5 @@ class SankeiSpider(CrawlSpider):
   
     def add_item(self, response):
         item = response.meta['item']
-        item['content'] += '<br>' + '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*/div[@class="fontMiddiumText"]/p/text()').extract()])
+        item['content'] += '<br>' + '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*/div[@class="fontMiddiumText"]/p//text()').extract()])
         return item

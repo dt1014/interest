@@ -48,7 +48,7 @@ class AsahiSpider(CrawlSpider):
                     if title_check:
                         item['title'] = title_check.replace('\u3000', ' ')
                         item['tag'] = ' '.join([x for x in response.xpath('/*//ul[@class="Tag"]//text()').extract() if x != '\n' and x != '\n\t'])
-                        item['content'] = re.sub('[\n\r\u3000]', '<br>', '<br>'.join(response.xpath('//*/div[@class="ArticleText"]/p/text()').extract()))
+                        item['content'] = re.sub('[\n\r\u3000]', '<br>', '<br>'.join(response.xpath('//*/div[@class="ArticleText"]/p//text()').extract()))
                         item['member'] = False if len(response.xpath('//*/div[@class="MoveLink"]/ul//text()').extract()) == 0 else True
                         item['publication_datetime'] = datetime.strptime(response.xpath('//*/div[@class="Title"]/p[@class="LastUpdated"]/text()').extract_first(),
                                                                          '%Y年%m月%d日%H時%M分')
@@ -56,7 +56,7 @@ class AsahiSpider(CrawlSpider):
                     else:
                         item['title'] = response.xpath('//*/div[@class="mod-headingB01 border-none"]/h1/text()').extract_first()
                         item['tag'] = ' '.join([x for x in response.xpath('/*//ul[@class="Tag"]//text()').extract() if x != '\n' and x != '\n\t'])
-                        item['content'] = re.sub('[\n\r\u3000]', '<br>', '<br>'.join(response.xpath('//*/div[@class="text-block"]/p/text()').extract()))
+                        item['content'] = re.sub('[\n\r\u3000]', '<br>', '<br>'.join(response.xpath('//*/div[@class="text-block"]/p//text()').extract()))
                         item['member'] = False if len(response.xpath('//*/div[@class="MoveLink"]/ul//text()').extract()) == 0 else True
                         item['publication_datetime'] = datetime.strptime(response.xpath('//*/div[@class="row"]/p[@class="date"]/text()').extract_first(),
                                                                          '%Y年%m月%d日%H時%M分')

@@ -45,7 +45,7 @@ class ReutersSpider(CrawlSpider):
 
         item['category'] = response.xpath('//*[@class="article-section"]/text()').extract()[0]
         item['title'] = response.xpath('//h1[@class="article-headline"]/text()').extract()[0].replace('\u3000', ' ')
-        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@id="articleText"]//p/text()').extract()])
+        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@id="articleText"]//p//text()').extract()])
         item['publication_datetime'] = response.xpath('//*[@class="article-header"]//*[@class="timestamp"]/text()').extract()[0]
         item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
                                                          '%Y年 %m月 %d日 %H:%M JST')
