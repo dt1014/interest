@@ -83,3 +83,14 @@ class AsahiArticle(Base):
     member = Column('member', Boolean)
     publication_datetime = Column('publication_datetime', DateTime())
     scraping_datetime = Column('scraping_datetime', DateTime())
+
+class YomiuriArticle(Base):
+    __tablename__ = 'yomiuri'
+
+    ID = Column('id', String(63), primary_key=True)
+    URL = Column('url', Text())
+    category = Column('category', String(63))
+    title = Column('title', String(127))
+    content = Column('content', Text())
+    publication_datetime = Column('publication_datetime', DateTime())
+    scraping_datetime = Column('scraping_datetime', DateTime())
