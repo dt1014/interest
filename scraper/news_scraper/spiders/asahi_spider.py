@@ -67,7 +67,7 @@ class AsahiSpider(CrawlSpider):
             except:
                 item['title'] = ''
 
-        if 'title' in item.keys():
+        if len(item['title']) != 0:
             self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
                 
         return item
