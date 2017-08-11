@@ -12,7 +12,7 @@ class BBCSpider(CrawlSpider):
     name = 'bbc'
     
     custom_settings = {
-        'DOWNLOAD_DELAY': 7,
+        'DOWNLOAD_DELAY': 10,
     }
     
     allowed_domains = ['www.bbc.com']
