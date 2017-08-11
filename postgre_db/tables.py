@@ -94,3 +94,14 @@ class YomiuriArticle(Base):
     content = Column('content', Text())
     publication_datetime = Column('publication_datetime', DateTime())
     scraping_datetime = Column('scraping_datetime', DateTime())
+
+class YomidrArticle(Base):
+    __tablename__ = 'yomidr'
+
+    ID = Column('id', String(63), primary_key=True)
+    URL = Column('url', Text())
+    category = Column('category', String(63))
+    title = Column('title', String(127))
+    content = Column('content', Text())
+    publication_datetime = Column('publication_datetime', DateTime())
+    scraping_datetime = Column('scraping_datetime', DateTime())

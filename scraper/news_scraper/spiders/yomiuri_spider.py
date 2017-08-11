@@ -15,15 +15,14 @@ class YomiuriSpider(CrawlSpider):
     name = 'yomiuri'
 
     custom_settings = {
-        'DOWNLOAD_DELAY': 3,
+        'DOWNLOAD_DELAY': 4,
         'ROBOTSTXT_OBEY': False
     }
     
-    allowed_domains = ['www.yomiuri.co.jp',
-                       'yomidr.yomiuri.co.jp']
+    allowed_domains = ['www.yomiuri.co.jp']
 
     start_urls = ['http://www.yomiuri.co.jp/',
-                  'https://yomidr.yomiuri.co.jp/']
+                  'http://www.yomiuri.co.jp/latestnews/?from=ygnav4']
     
     rules = [Rule(LinkExtractor(allow=['http://www.yomiuri.co.jp/.+/[0-9]{8}-']),
                   callback='parse_articles',
@@ -31,34 +30,7 @@ class YomiuriSpider(CrawlSpider):
              Rule(LinkExtractor(allow=['http://www.yomiuri.co.jp/stream/?']),
                   callback='parse_streams',
                   follow=True),
-             Rule(LinkExtractor(allow=['https://yomidr.yomiuri.co.jp/article/[0-9]{8}-'],
-                                deny=['https://yomidr.yomiuri.co.jp/(byoin-no-jitsuryoku|iryo-sodan|seminar-event)/.+', '\?catname=(iryo-sodan|seminar-event_event-forum|exercise_murofushi-yuka|tobyoki_ichibyo-sokusai|column_hon-yomidoku-do|iryo-taizen)$']),
-                  callback='parse_medical',
-                  follow=True),
-             Rule(LinkExtractor())]
-
-    def parse_medical(self, response):
-        url = response.url
-        item = YomiuriItem()
-        item['URL'] = url
-        item['title'] = ''
- 
-        if response.xpath('//*[@name="xyomidr:category"]/@content').extract_first() == 'ニュース':
-            try:
-                item['title'] = response.xpath('//title/text()').extract_first().replace('\u3000', ' ')
-                item['category'] = 'medical'
-                item['content'] = re.sub('[\n\r\u3000]', '<br>', ''.join(response.xpath('//*/div[@class="edit-area"]/p[@itemprop="articleBody"]//text()').extract()))
-                item['publication_datetime'] = datetime.strptime(response.xpath('//*/header[@class="blog-header"]//time/text()').extract_first(),
-                                                                 '%Y年%m月%d日')
-                item['scraping_datetime'] = datetime.now()
-                
-            except:
-                item['title'] = ''
-
-        if len(item['title']) != 0:
-            self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
-                
-        return item
+             Rule(LinkExtractor(deny=['.html?url=']))]
         
     def parse_articles(self, response):
         url = response.url
@@ -82,7 +54,8 @@ class YomiuriSpider(CrawlSpider):
         
     def parse_streams(self, response):
         url = response.url
-
+        item = YomiuriItem()
+        item['URL'] = url
         item['ID'] = re.search('/\?id=(.+)', response.xpath('head/link[@rel="canonical"]/@href').extract_first()).group(1)
         item['category'] = 'stream'
         item['title'] = response.xpath('//*/p[@class="movieTitle"]/text()').extract_first().replace('\u3000', '')   
