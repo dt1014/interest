@@ -22,14 +22,12 @@ class AsahiSpider(CrawlSpider):
 
     rules = [Rule(LinkExtractor(allow=['http://www.asahi.com/articles/.*',
                                        'http://www.asahi.com/(koshien|apital|tech_science)/articles']),
-                  callback='parse_first',
+                  callback='parse_articles',
                   follow=True),
              Rule(LinkExtractor(deny=['http://www.asahi.com/(shimen|area|corporate|shimbun|special|ad|msta)/.+',
-                                      'http://www.asahi.com/and_.+']),
-                  callback='parse_second',
-                  follow=True)]
-
-    def parse_first(self, response):
+                                      'http://www.asahi.com/and_.+']))]
+    
+    def parse_articles(self, response):
 
         url = response.url
         item = AsahiItem()
@@ -61,8 +59,15 @@ class AsahiSpider(CrawlSpider):
                         item['publication_datetime'] = datetime.strptime(response.xpath('//*/div[@class="row"]/p[@class="date"]/text()').extract_first(),
                                                                          '%Y年%m月%d日%H時%M分')
                         item['scraping_datetime'] = datetime.now()
-                    
+
+                    content_check = re.sub('[\n\r\u3000]', '<br>', '<br>'.join(response.xpath('//*/div[@class="ArticleText cFix"]/p//text()').extract()))
+                    if content_check:
+                        item['content'] = content_check
+                        
             except:
                 item['title'] = ''
-                    
+
+        if 'title' in item.keys():
+            self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
+                
         return item
