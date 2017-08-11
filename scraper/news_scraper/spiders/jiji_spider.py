@@ -47,6 +47,7 @@ class JijiSpider(CrawlSpider):
         url = response.url
         item = JijiItem()
         item['URL'] = url
+        item['title'] = ''
         item['scraping_datetime'] = datetime.now()
         if re.search('.*=pv$', url):
             pass
@@ -187,7 +188,4 @@ class JijiSpider(CrawlSpider):
             self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
         
         return item
-    
-    def parse_second(self, response):
-        print(response.url)
-        return JijiItem()
+   
