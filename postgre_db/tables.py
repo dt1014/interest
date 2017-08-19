@@ -106,6 +106,17 @@ class YomidrArticle(Base):
     publication_datetime = Column('publication_datetime', DateTime())
     scraping_datetime = Column('scraping_datetime', DateTime())
 
+class MainichiArticle(Base):
+    __tablename__ = 'mainichi'
+
+    ID = Column('id', String(63), primary_key=True)
+    URL = Column('url', Text())
+    tag = Column('tag', String(127))
+    title = Column('title', String(127))
+    content = Column('content', Text())
+    publication_datetime = Column('publication_datetime', DateTime())
+    scraping_datetime = Column('scraping_datetime', DateTime())
+
 class BloombergArticle(Base):
     __tablename__ = 'bloomberg'
 
