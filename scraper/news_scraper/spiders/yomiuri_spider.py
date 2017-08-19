@@ -61,9 +61,9 @@ class YomiuriSpider(CrawlSpider):
         item['title'] = response.xpath('//*/p[@class="movieTitle"]/text()').extract_first().replace('\u3000', '')   
         content_check = response.xpath('//*/p[@class="detailText typeB"]//text()').extract()
         if content_check:
-            item['content'] = content_check
+            item['content'] = re.sub('[\n\r\u3000]', '<br>', ''.join(content_check))
         else:
-            item['content'] = response.xpath('//*/p[@class="detailText"]//text()').extract()
+            item['content'] = re.sub('[\n\r\u3000]', '<br>', ''.join(response.xpath('//*/p[@class="detailText"]//text()').extract()))
         item['publication_datetime'] = datetime.strptime(response.xpath('//*/p[@style="display:none"]/text()').extract_first(),
                                                          '%Y年%m月%d日')
         item['scraping_datetime'] = datetime.now()
