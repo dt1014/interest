@@ -38,7 +38,8 @@ class JijiSpider(CrawlSpider):
                   'https://www.jiji.com/jc/p']
     
     rules = [Rule(LinkExtractor(deny=[r'https://www\.jiji\.com/(service|c_profile|jinji|topseminar|hall).*$',
-                                      r'https://www\.jiji\.com/jc/(v|v[0-9]|d[0-9]|f[0-9]|e|ak|v4|ad|graphics|books|f_mode|calendar|forecast|m_stock|giin|travel|car|score|rio2016).*$']),
+                                      r'https://www\.jiji\.com/jc/(v|v[0-9]|d[0-9]|f[0-9]|e|ak|v4|ad|graphics|books|f_mode|calendar|forecast|m_stock|giin|travel|car|score|rio2016).*$',
+                                      r'=photolist$']),
                   callback='parse_articles',
                   follow=True)]
     
