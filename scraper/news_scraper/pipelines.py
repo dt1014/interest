@@ -48,7 +48,14 @@ class ToPostgreSQLPipeline(object):
                                'gigazine': tables.GigazineArticle,
                                'jiji': tables.JijiArticle,
                                'sankei': tables.SankeiArticle,
-                               'asahi': tables.AsahiArticle}
+                               'asahi': tables.AsahiArticle,
+                               'yomiuri': tables.YomiuriArticle,
+                               'yomidr': tables.YomidrArticle,
+                               'mainichi': tables.MainichiArticle,
+                               'bloomberg': tables.BloombergArticle,
+                               'nikkei': tables.NikkeiArticle,
+                               'afp': tables.AFPArticle,
+                               'zaikei': tables.ZaikeiArticle}
 
         postgres_url = 'postgres://%s/%s'%(self.postgres_host, self.postgres_db)
         for key, val in self.name_table_dic.items():
