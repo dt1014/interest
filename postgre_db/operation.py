@@ -17,7 +17,7 @@ def checkTable(postgres_url, table):
     except:
         print('make tables')
         Base.metadata.create_all(engine)
-    
+
 def get_session_maker(postgres_url):
     engine = create_engine(postgres_url)
     return sessionmaker(bind=engine)
@@ -33,3 +33,13 @@ def session_scope(session_maker):
         raise e
     finally:
         session.close()
+
+@contextmanager
+def conn_scope(postgres_url):
+    engine = create_engine(postgres_url)
+    conn = engine.connect()
+    try:
+        yield engine
+    finally:
+        conn.close()
+    
