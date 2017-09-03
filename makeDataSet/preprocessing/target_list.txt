@@ -1,0 +1,10 @@
+reuters
+afp
+sankei
+asahi
+yomiuri
+jiji
+nikkei
+zaikei
+itmedia
+gigazine
