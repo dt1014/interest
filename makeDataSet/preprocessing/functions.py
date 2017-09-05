@@ -15,26 +15,21 @@ def processGeneralContent(content):
     content = mojimoji.han_to_zen(content, digit=False, ascii=False)
     content = mojimoji.zen_to_han(content, kana=False)
     
-    patterns = ["^(.+?。\s*)(<br>|$)"]
-    for pattern in patterns:
-        m = re.search(pattern, content)
-        if m:
-            first_paragraph = m.group(1)
-            break
+    # cutting off first paragraph from content
+    # patterns = ["^(.+?。\s*)(<br>|$)"]
+    # for pattern in patterns:
+    #     m = re.search(pattern, content)
+    #     if m:
+    #         content_ = m.group(1)
+    #         break
 
-    if not "first_paragraph" in locals():
-        first_paragraph = content
-        #print(content)
-        #sys.exit("Error cannnot cut off first paragraph")
-        
-    # if first_paragraph[:10] != content[:10]:
-    #     print("="*200)
-    #     print(first_paragraph)
-    #     print()
-    #     print(content)
-    #     print("="*200) 
+    if not "content_" in locals():
+        content_= content
 
-    return first_paragraph
+    content_ = content_.strip()
+    content_ = re.sub("(<br>[\s\t・]*)+", "<br>", content_)
+
+    return content_
 
 def removeHeadTail(sentence, n_groups, remove_lists):
     for i, (n_group, remove_list) in enumerate(zip(n_groups, remove_lists)):
