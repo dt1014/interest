@@ -31,13 +31,13 @@ def processGeneralContent(content):
 
     return content_
 
-def removeHeadTail(sentence, n_groups, remove_lists):
-    for i, (n_group, remove_list) in enumerate(zip(n_groups, remove_lists)):
-        remove_format = "(%s)(.+)" if i==0 else "(.+)(%s)"
+def removeHeadTail(sentence, n_groups, remove_lists, remove_formats=["(%s)(.+)", "(.+)(%s)"]):
+    for n_group, remove_list, remove_format in zip(n_groups, remove_lists, remove_formats):
         for remove in remove_list:
             m = re.search(remove_format%remove, sentence)
             if m:
                 sentence = m.group(n_group)
+    sentence = sentence.strip()
     return sentence
                                                                                                                                            
 def processReutersTitle(title):
