@@ -9,6 +9,7 @@ from settings import START, EOS
 def processGeneralTitle(title):
     title = mojimoji.han_to_zen(title, digit=False, ascii=False)
     title = mojimoji.zen_to_han(title, kana=False)
+    title = title.strip()
     return title
 
 def processGeneralContent(content):
@@ -39,7 +40,6 @@ def removeHeadTail(sentence, n_groups, remove_lists, remove_formats=["(%s)(.+)",
                 sentence = m.group(n_group)
     sentence = sentence.strip()
     return sentence
-                                                                                                                                           
 
 def removeInside(sentence, remove_list):
     for remove in remove_list:
@@ -47,19 +47,15 @@ def removeInside(sentence, remove_list):
     return sentence
                                                                                                                            
 def processReutersTitle(title):
-    # 一文につき複数のパターンの組み合わせがある場合がある
-    # 「〜こうみる:」を除くかどうか判断に悩む
     head_remove_list = ["〔.+〕", "訂正:", "訂正.+-", "再送:", "再送-", "コラム:", "焦点:", "視点:", "インタビュー:", "アングル:", "緊急市場調査:", \
                         "情報BOX:", "特別リポート:", "ホットストック:", "ブログ:", "オピニオン:", "BRIEF-", "UPDATE.*-"]
-    tail_remove_list = ["[:=]識者は?こうみる"]
+    tail_remove_list = ["[:=]識者は?こうみる", r"\s*\|\s*ロイター"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
-    return START + title + EOS
+    
+    return START + title.strip() + EOS
 
 def processReutersContent(content):
-    head_remove_list = ["\[.+?\]\s*-?\s*"]
+    head_remove_list = [r"\[.+?\]\s*-?\s*"]
     tail_remove_list = []
-    #print()
-    #print(content)
+    inside_remove_list = [r"\(<br>.*<br>\)"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
-    #print(content)
-    return START + content + EOS
