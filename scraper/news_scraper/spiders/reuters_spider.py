@@ -43,14 +43,32 @@ class ReutersSpider(CrawlSpider):
             item['ID'] = ''
             self.logger.error('Cannot parse ID from url: <%s>', url)
 
-        item['category'] = response.xpath('//*[@class="article-section"]/text()').extract()[0]
-        item['title'] = response.xpath('//h1[@class="article-headline"]/text()').extract()[0].replace('\u3000', ' ')
-        item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@id="articleText"]//p//text()').extract()])
-        item['publication_datetime'] = response.xpath('//*[@class="article-header"]//*[@class="timestamp"]/text()').extract()[0]
-        item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
-                                                         '%Y年 %m月 %d日 %H:%M JST')
-        item['scraping_datetime'] = datetime.now()
-      
+        try:
+            item['category'] = re.sub('#', '', response.xpath('//*/div[@class="ArticleHeader_channel_4KD-f"]//text()').extract_first())
+            item['title'] = re.sub('\u3000', ' ', response.xpath('//*/title/text()').extract_first())
+            item['content'] = re.sub('[\n\r\u3000]', '<br>', '<br>'.join(response.xpath('//*/div[@class="ArticleBody_body_2ECha"]//text()').extract()))
+            item['publication_datetime'] = datetime.strptime(re.sub('\s', '', ''.join(response.xpath('//*[@class="ArticleHeader_date_V9eGk"]//text()').extract()[0].split('/')[: 2])),
+                                                             '%Y年%m月%d日%H:%M')
+            item['scraping_datetime'] = datetime.now()
+        
+        except IndexError:
+            item['category'] = response.xpath('//*[@class="article-section"]/text()').extract()[0]
+            item['title'] = response.xpath('//h1[@class="article-headline"]/text()').extract()[0].replace('\u3000', ' ')
+            item['content'] = '<br>'.join([x.replace('\u3000', ' ') for x in response.xpath('//*[@id="articleText"]//p//text()').extract()])
+            item['publication_datetime'] = response.xpath('//*[@class="article-header"]//*[@class="timestamp"]/text()').extract()[0]
+            item['publication_datetime'] = datetime.strptime(item['publication_datetime'],
+                                                             '%Y年 %m月 %d日 %H:%M JST')
+            item['scraping_datetime'] = datetime.now()
+
+        print('-'*200)
+        print(item['category'])
+        print(item['title'])
+        print(item['publication_datetime'])
+        print()
+        print(item['content'])
+        print('-'*200)
+    
+            
         self.logger.info('scraped from <%s> published in %s' % (item['URL'], item['publication_datetime']))
 
         return item
