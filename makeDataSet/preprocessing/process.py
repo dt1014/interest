@@ -41,6 +41,9 @@ def process(conn, query, target, logger):
     ).drop(["title", "content"], axis=1
     ).rename(columns={"title_": "title", "content_": "content"})
 
+    logger.info("shape after filtering: %s"%str(df.shape))
+
+    df = df.reset_index(drop=True)
     return df
     
 def main(args):
