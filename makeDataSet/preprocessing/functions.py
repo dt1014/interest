@@ -70,3 +70,18 @@ def processReutersContent(content):
     content = removeInside(content, inside_remove_list)
 
     return START + content.strip() + EOS
+
+def processAfpTitle(title):
+    head_remove_list = ["^【.+】", "^<.*Beauty Life>", "^動画:", "^字幕:"]
+    tail_remove_list = ["写真\d*枚 国際ニュース:AFPBB News", "写真\d*枚 マリ・クレール (スタイル|スタイル ムッシュ|スタイル マリアージュ) : marie claire (style|style monsieur|style mariage)"]
+    title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
+    return START + title.strip() + EOS
+
+def processAfpContent(content):
+    head_remove_list = ["^<br>", "^【.*?】", "^\(.+?\)"]
+    tail_remove_list = ["\(c\).*?$", "【.*】.*$", ">>\s*記事全文.*?$", "■お問合せ先.*?", "■関連情報.*?"]
+    inside_remove_list = ["【.*】"]
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    content = removeInside(content, inside_remove_list)
+    return START + content.strip() + EOS
+
