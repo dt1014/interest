@@ -29,11 +29,13 @@ def process(conn, query, target, logger):
 
     df = df[["title", "content"]]
 
+    # general process
     df = df.assign(title_=lambda df: df["title"].apply(functions.processGeneralTitle),
                    content_=lambda df: df["content"].apply(functions.processGeneralContent)
     ).drop(["title", "content"], axis=1
     ).rename(columns={"title_": "title", "content_": "content"})
 
+    # process per target # if want to drop, return blank from apply function
     df = df.assign(title_=lambda df: df["title"].apply(functions.__dict__["process"+target.capitalize()+"Title"]),
                    content_=lambda df: df["content"].apply(functions.__dict__["process"+target.capitalize()+"Content"])
     ).drop(["title", "content"], axis=1
