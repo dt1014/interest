@@ -40,6 +40,12 @@ def removeHeadTail(sentence, n_groups, remove_lists, remove_formats=["(%s)(.+)",
     sentence = sentence.strip()
     return sentence
                                                                                                                                            
+
+def removeInside(sentence, remove_list):
+    for remove in remove_list:
+        sentence = re.sub(remove, "", sentence)
+    return sentence
+                                                                                                                           
 def processReutersTitle(title):
     # 一文につき複数のパターンの組み合わせがある場合がある
     # 「〜こうみる:」を除くかどうか判断に悩む
