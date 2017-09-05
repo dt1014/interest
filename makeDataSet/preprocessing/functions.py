@@ -59,3 +59,14 @@ def processReutersContent(content):
     tail_remove_list = []
     inside_remove_list = [r"\(<br>.*<br>\)"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
+    
+    pattern = r"\(<br>([a-zA-Z]+?)\.?[a-zA-Z0-9]+<br>\)"
+    while True:
+        if re.search(pattern, content):
+            content = re.sub(pattern, r"(\1)", content)
+        else:
+            break
+
+    content = removeInside(content, inside_remove_list)
+
+    return START + content.strip() + EOS
