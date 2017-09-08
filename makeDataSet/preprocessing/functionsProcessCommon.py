@@ -164,6 +164,21 @@ def processZaikeiContent(content):
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     return START + content.strip() + EOS # tired...
 
+def processItmediaTitle(title):
+    head_remove_list = []
+    tail_remove_list = ["\s+\-\s+.+?$", "\s*\(\d+/\d+\)\s*$"]
+    inside_remove_list = [r"\([0-9上下]\)"]
+    title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    title = removeInside(title, inside_remove_list)
+    title = re.sub("[―—]{2}", ":", title)
+    return START + title.strip() + EOS
+
+def processItmediaContent(content):
+    head_remove_list = []
+    tail_remove_list = [r"<br>Copyright©", r"<br>.+?も併せてチェック", "。<br>過去の.+?一覧はこちら", "この記事が気に入ったら"]
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    return START + content.strip() + EOS 
+
 def processGigazineTitle(title):
     head_remove_list = []
     tail_remove_list = ["\s+\-\s+.+?$", "((先行)?試[飲食]|食べ比べ|速攻(フォト)?|フォト|実機)?レビュー$"]
