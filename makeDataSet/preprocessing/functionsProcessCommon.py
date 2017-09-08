@@ -151,3 +151,15 @@ def processNikkeiContent(content):
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     content = removeInside(content, inside_remove_list)
     return START + content.strip() + EOS
+
+def processZaikeiTitle(title):
+    head_remove_list = [r"^【.+?】", "^■FISCOアプリの銘柄選定:【本日の材料と銘柄】", "^《新興市場銘柄ダイジェスト》:", "^■(.+?)の銘柄選定:"]
+    tail_remove_list = [r"\s*\|\s*財経新聞\s*$", "\s*\|\s*韓流STARS\s*$"]
+    title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    return START + title.strip() + EOS
+
+def processZaikeiContent(content):
+    head_remove_list = [r"^<br>"]
+    tail_remove_list = []
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    return START + content.strip() + EOS # tired...
