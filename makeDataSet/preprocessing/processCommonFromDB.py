@@ -10,20 +10,19 @@ sys.path.append(os.getcwd())
 from postgre_db import operation
 
 from settings import *
-import functions
+import functionsProcessCommon as functions
 
 LOGFORMAT = logging.Formatter("%(asctime)-15s [%(name)s] %(message)s")
 
 def process(conn, query, target, logger):
     query = query%target
     df = pd.io.sql.read_sql(query, conn)
-    #import IPython;IPython.embed() ##############################
     
     logger.info("raw shape: %s"%str(df.shape))
-    logger.info("columns: %s"%str(df.columns))
+    logger.info("columns: (%s)"%", ".join(df.columns))
 
-    df = df[df['title'].apply(lambda x: len(x)) != 0]
-    df = df[df['content'].apply(lambda x: len(x)) != 0]
+    df = df[df["title"].apply(lambda x: len(x)) != 0]
+    df = df[df["content"].apply(lambda x: len(x)) != 0]
 
     logger.info("shape after removing record having empty title or content: %s"%str(df.shape))
 
@@ -41,9 +40,8 @@ def process(conn, query, target, logger):
     
 def main(args):
     
-    query = "select * from %s order by random() limit 100000;" ##################################
-    global target_list
-    target_list = target_list[:1] ##################################
+    print("=== target: %s ===" % args.target)
+    
     query = "select * from %s;"
 
     with operation.conn_scope(postgres_url) as conn:            
