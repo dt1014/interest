@@ -48,31 +48,28 @@ def removeInside(sentence, remove_list):
                                                                                                                            
 def processReutersTitle(title):
     head_remove_list = ["〔.+〕", "訂正:", "訂正.+-", "再送:", "再送-", "コラム:", "焦点:", "視点:", "インタビュー:", "アングル:", "緊急市場調査:", \
-                        "情報BOX:", "特別リポート:", "ホットストック:", "ブログ:", "オピニオン:", "BRIEF-", "UPDATE.*-"]
+                        "情報BOX:", "特別リポート:", "ホットストック:", "ブログ:", "オピニオン:", "BRIEF-", "UPDATE.*-", r"^【.+?】", r"コラム【.+?】"r"^\(.+?\)"]
     tail_remove_list = ["[:=]識者は?こうみる", r"\s*\|\s*ロイター"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
-    
     return START + title.strip() + EOS
 
 def processReutersContent(content):
-    head_remove_list = [r"\[.+?\]\s*-?\s*"]
+    head_remove_list = [r"\[.+?\]\s*-?\s*", r"^【.+?】"]
     tail_remove_list = []
-    inside_remove_list = [r"\(<br>.*<br>\)"]
+    inside_remove_list = [r"\(<br>.*<br>\)", "<br>\.N225<br>"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
-    
+    # processing for code or abbreviation of company
     pattern = r"\(<br>([a-zA-Z]+?)\.?[a-zA-Z0-9]+<br>\)"
     while True:
         if re.search(pattern, content):
             content = re.sub(pattern, r"(\1)", content)
         else:
             break
-
     content = removeInside(content, inside_remove_list)
-
     return START + content.strip() + EOS
 
 def processAfpTitle(title):
-    head_remove_list = ["^【.+】", "^<.*Beauty Life>", "^動画:", "^字幕:"]
+    head_remove_list = ["^【.+?】", "^<.*Beauty Life>", "^動画:", "^字幕:"]
     tail_remove_list = ["写真\d*枚 国際ニュース:AFPBB News", "写真\d*枚 マリ・クレール (スタイル|スタイル ムッシュ|スタイル マリアージュ) : marie claire (style|style monsieur|style mariage)"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
     return START + title.strip() + EOS
@@ -80,7 +77,7 @@ def processAfpTitle(title):
 def processAfpContent(content):
     head_remove_list = ["^<br>", "^【.*?】", "^\(.+?\)"]
     tail_remove_list = ["\(c\).*?$", "【.*】.*$", ">>\s*記事全文.*?$", "■お問合せ先.*?", "■関連情報.*?"]
-    inside_remove_list = ["【.*】"]
+    inside_remove_list = ["【.*?】"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     content = removeInside(content, inside_remove_list)
     return START + content.strip() + EOS
