@@ -1,11 +1,32 @@
 #!/bin/bash
 
-working_dir=makeDataSet/preprocessing
+working_dir=dataset
+src_dir=${working_dir}/src
 result_dir=${working_dir}/result
 log_dir=${working_dir}/log
-target_list=${working_dir}/target_list.txt
+target_list=${src_dir}/target_list.txt
 
 mkdir -p ${log_dir}
+
+function processCommonFromDB() {
+    
+    mkdir -p ${result_dir}/${target}
+   
+    logpath=${log_dir}/${target}.log
+    if [ -f ${logpath} ]
+    then
+		rm ${logpath}
+    fi
+
+    python ${working_dir}/processCommonFromDB.py \
+		   --outpath ${result_dir}/${target}/common_procesed.pkl \
+		   --logpath ${logpath} \
+		   --target ${target}
+}
+
+function pipe() {
+    processCommonFromDB ${target}  
+}
 
 for option in "$@"
 do
@@ -15,27 +36,6 @@ do
 	    shift 2
     esac
 done
-
-function processCommonFromDB() {
-    
-    mkdir -p ${result_dir}/${target}
-   
-    logpath=${log_dir}/${target}.log
-    if [ -f ${logpath} ]
-    then
-	rm ${logpath}
-    fi
-
-    python ${working_dir}/processCommonFromDB.py \
-	--outpath ${result_dir}/${target}/common_procesed.pkl \
-	--logpath ${logpath} \
-	--target ${target}
-
-}
-
-function pipe() {
-    processCommonFromDB ${target}  
-}
 
 if [ -z "${target}" ]
 then
