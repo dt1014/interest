@@ -126,3 +126,12 @@ def processYomiuriContent(content):
     tail_remove_list = []
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
     return START + content.strip() + EOS
+    
+def processJijiTitle(title):
+    return START + title.strip() + EOS # give up...
+
+def processJijiContent(content):
+    head_remove_list = [r"^<br>", r"^【.+?】", r"^\(.+?\)"]
+    tail_remove_list = [r"<br>関連ニュース", r"<br>【(社会|経済|政治)記事一覧へ】", r"<br>【アクセスランキング】", r"【.+?】$"]
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    return START + content.strip() + EOS
