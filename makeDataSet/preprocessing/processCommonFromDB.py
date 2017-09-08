@@ -27,23 +27,16 @@ def process(conn, query, target, logger):
 
     logger.info("shape after removing record having empty title or content: %s"%str(df.shape))
 
-    df = df[["title", "content"]]
-
     # general process
     df = df.assign(title_=lambda df: df["title"].apply(functions.processGeneralTitle),
-                   content_=lambda df: df["content"].apply(functions.processGeneralContent)
-    ).drop(["title", "content"], axis=1
-    ).rename(columns={"title_": "title", "content_": "content"})
+                   content_=lambda df: df["content"].apply(functions.processGeneralContent))
 
-    # process per target # if want to drop, return blank from apply function
-    df = df.assign(title_=lambda df: df["title"].apply(functions.__dict__["process"+target.capitalize()+"Title"]),
-                   content_=lambda df: df["content"].apply(functions.__dict__["process"+target.capitalize()+"Content"])
-    ).drop(["title", "content"], axis=1
-    ).rename(columns={"title_": "title", "content_": "content"})
-
-    logger.info("shape after filtering: %s"%str(df.shape))
+    # process per target 
+    df = df.assign(title__=lambda df: df["title_"].apply(functions.__dict__["process"+target.capitalize()+"Title"]),
+                   content__=lambda df: df["content_"].apply(functions.__dict__["process"+target.capitalize()+"Content"]))
 
     df = df.reset_index(drop=True)
+
     return df
     
 def main(args):
