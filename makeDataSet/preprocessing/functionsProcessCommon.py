@@ -163,3 +163,15 @@ def processZaikeiContent(content):
     tail_remove_list = []
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     return START + content.strip() + EOS # tired...
+
+def processGigazineTitle(title):
+    head_remove_list = []
+    tail_remove_list = ["\s+\-\s+.+?$", "((先行)?試[飲食]|食べ比べ|速攻(フォト)?|フォト|実機)?レビュー$"]
+    title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    return START + title.strip() + EOS
+
+def processGigazineContent(content):
+    head_remove_list = [r"^<br>"]
+    tail_remove_list = [r"<br>関連コンテンツ$"]
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    return START + content.strip() + EOS # so tired......
