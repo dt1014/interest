@@ -82,3 +82,19 @@ def processAfpContent(content):
     content = removeInside(content, inside_remove_list)
     return START + content.strip() + EOS
 
+def processSankeiTitle(title):
+    head_remove_list = [r"^【.+?】", r"\(動画(あり|付き|つき|も)\)"]
+    tail_remove_list = [r"\(動画(あり|付き|つき|も)\)", r"\([前後]編\)", r"\(一問一答\)"]
+    inside_remove_list = [r"\(\d+完?\)", r"\([上下]\)"]
+    title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list]) 
+    title = removeInside(title, inside_remove_list)
+    return START + title.strip() + EOS
+
+def processSankeiContent(content):
+    symbol = ["■", "□", "◆", "◇", "▲", "△", "▼", "▽"]
+    head_remove_list = [r"^<br>", r"読んで見フォト", r"^<br>", r"写真で深読み、見るニュース", r"^<br>"]
+    head_remove_list += [r"^%s.+?<br>"%x for x in symbol]
+    tail_remove_list = [r"<br>%s"%x for x in symbol]
+    inside_remove_list = ["[%s]"%("".join(symbol))] 
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    return START + content.strip() + EOS
