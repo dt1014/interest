@@ -112,3 +112,17 @@ def processAsahiContent(content):
     tail_remove_list = []
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
     return START + content.strip() + EOS
+
+def processYomiuriTitle(title):
+    head_remove_list = [r"^<br>", r"^\(.+?\)", r"^〈[1-9上下]+〉", r"^【.+?】"]
+    tail_remove_list = [r"\(.+\)$", r"=訂正(・おわび)?あり"]
+    inside_remove_list = [r"\(\d+\)", r"\([上下]\)"]
+    title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
+    title = removeInside(title, inside_remove_list)
+    return START + title.strip() + EOS
+
+def processYomiuriContent(content):
+    head_remove_list = [r"^<br>"]
+    tail_remove_list = []
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
+    return START + content.strip() + EOS
