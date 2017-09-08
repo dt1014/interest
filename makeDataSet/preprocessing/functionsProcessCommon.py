@@ -135,3 +135,19 @@ def processJijiContent(content):
     tail_remove_list = [r"<br>関連ニュース", r"<br>【(社会|経済|政治)記事一覧へ】", r"<br>【アクセスランキング】", r"【.+?】$"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     return START + content.strip() + EOS
+    
+def processNikkeiTitle(title):
+    head_remove_list = [r"^<br>", r"^\(.+?\)", r"^\)"]
+    tail_remove_list = [r" :日本経済新聞$", r"\(.+?\)$"]
+    inside_remove_list = [r"\([0-9上下]\)"]
+    title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
+    title = removeInside(title, inside_remove_list)
+    return START + title.strip() + EOS
+
+def processNikkeiContent(content):
+    head_remove_list = [r"^<br>", r"^\(.+?\)", r"^<br>", r"^【.+?】", r"^<br>"]
+    tail_remove_list = []
+    inside_remove_list = [r"画像の拡大"]
+    content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
+    content = removeInside(content, inside_remove_list)
+    return START + content.strip() + EOS
