@@ -46,27 +46,26 @@ def main(args):
     target_list = target_list[:1] ##################################
     query = "select * from %s;"
 
-    with operation.conn_scope(postgres_url) as conn:
-        for target in target_list:
-            if args.overwrite and os.path.exists(args.outpath, target+".pkl"):
-                continue
-
-            sh = logging.FileHandler(os.path.join(args.logpath, target+".log"), "a")
-            sh.setFormatter(LOGFORMAT)
-            main_logger = logging.getLogger("main")
-            main_logger.addHandler(sh)
-            process_logger = logging.getLogger("process")
-            process_logger.addHandler(sh)
-            df = process(conn, query, target, process_logger)
+    with operation.conn_scope(postgres_url) as conn:            
+        sh = logging.FileHandler(args.logpath)
+        sh.setFormatter(LOGFORMAT)
+        main_logger = logging.getLogger(os.path.basename(__file__) + ": main")
+        main_logger.addHandler(sh) 
+        main_logger.setLevel(logging.INFO)
+        process_logger = logging.getLogger(os.path.basename(__file__) + ": process")
+        process_logger.addHandler(sh)
+        process_logger.setLevel(logging.INFO)
+        df = process(conn, query, args.target, process_logger)
+    
+        main_logger.info("done! save title and target")
+        with open(args.outpath, "wb") as f_save:
+            pickle.dump(df, f_save)
             
-            main_logger.info("save title and target")
-            with open(os.path.join(args.outpath, target+".pkl"), "wb") as f_save:
-                pickle.dump(df, f_save)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--outpath", type=str, help="")
     parser.add_argument("--logpath", type=str, help="")
+    parser.add_argument("--target", type=str, help="")
     parser.add_argument("--overwrite", action="store_true", help="")
     args = parser.parse_args()
     
