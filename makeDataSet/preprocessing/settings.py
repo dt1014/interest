@@ -11,9 +11,3 @@ postgres_url = "postgres://%s/%s"%(postgres_host, postgres_db)
 
 START = "<S>"
 EOS = "<EOS>"
-
-with open(os.path.abspath(os.path.dirname(__file__))+"/target_list.txt") as f_list:
-    lines = f_list.readlines()
-target_list = []
-for line in lines:
-    target_list.append(line.strip())
