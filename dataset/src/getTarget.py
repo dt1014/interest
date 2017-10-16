@@ -83,7 +83,7 @@ def isUnique(token):
 def isCountry(token):
     return True if re.search("^名詞-固有名詞-地域-国", token[1]) else False
 
-# heuristic
+# heuristic way (getting similarity comaring word vectors from trained word2vec model)
 def calculateSimilarityScores(title, target, threshold=0.5):
     title_tokens = tkn.tokenize(title)
     target_tokens = tkn.tokenize(target)
@@ -114,56 +114,111 @@ def calculateSimilarityScores(title, target, threshold=0.5):
         w_scores.append(w_score)
 
     percentage_unq_cntry_match = sum(unq_cntry_scores)/len(unq_cntry_scores) if len(unq_cntry_scores)>0 else None
-    percentage_whole_match = sum([ws == 1.0 for ws in w_scores])/len(w_scores)
-    percentage_threshold_match = sum([ws > threshold for ws in w_scores])/len(w_scores)
+    # percentage_whole_match = sum([ws == 1.0 for ws in w_scores])/len(w_scores)
+    # percentage_threshold_match = sum([ws > threshold for ws in w_scores])/len(w_scores)
     average_w_score = np.average(np.array(w_scores))
     
-    return (percentage_unq_cntry_match, 
-            percentage_whole_match, 
-            percentage_threshold_match, 
-            average_w_score)
+    # return (percentage_unq_cntry_match, 
+    #         percentage_whole_match, 
+    #         percentage_threshold_match, 
+    #         average_w_score)
+    return (percentage_unq_cntry_match, average_w_score)
 
-# def pickupSentences(title, content, number_sentences=1):
+def pickupSentences(title, content, number_sentences, thresholds):
     
-#     ###########################あとでけす###########################
-#     title = re.sub("(<S>|<EOS>)", "", title)
-#     ################################################################
-#     print()
-#     print("="*200)
-#     print(title)
-#     print(content)
-#     for target in tkn.splitContent(content, number_sentences):
-#         scores = calculateSimilarityScores(title, target)
-#         print("-"*100)
-#         print("   " + target)
-#         print("   " + str(scores))
-            
-def filter(df, number_sentences=1, thresholds=(0.9, 0.65, 0.65, 0.65)):
-    global w2v
-    if not w2v.model:
-        w2v.loadModel()
+    ###########################あとでけす###########################
+    title = re.sub("(<S>|<EOS>)", "", title)
+    ################################################################
 
-    result_true = []
-    result_false = []
-    for _, value in df.iterrows():
-        import time
-        time.sleep(2)
-        title = value[0]
-        content = value[1]
-        ###########################あとでけす###########################
-        title = re.sub("(<S>|<EOS>)", "", title)
-        ################################################################
+    match_list = []
+    highest_scores = (0, 0)
+    highest_target = None
+    for target in tkn.splitContent(content, number_sentences):
+
+        # length of target must lager than that of title
+        if len(target) < len(title):
+            continue
         
-        target = tkn.splitContent(content, number_sentences)[0]
         scores = calculateSimilarityScores(title, target)
+
+        # pick up by threshold
         use = True
         for s, t in zip(scores, thresholds):
             if s is None:
                 continue
             use = use and (s > t)
+        if use:
+            match_list.append((target, scores))
 
-        print("-"*100)
-        print(title)
-        print(target)
-        print(scores)
-        print(use)
+        # choose highest averageword score  # for no match
+        if highest_scores[1] < scores[1]:
+            highest_scores = scores
+            highest_target = target
+
+    # pick up from match list comparing just unq_score if unq_score is not None
+    # otherwise, compare average word score
+    if len(match_list) > 0:
+        use_target = None
+        use_scores = (0, 0)
+        for target, scores in match_list:
+            if scores[0] is None:
+                if use_scores[1] < scores[1]:
+                    use_target = target
+                    use_scores = scores
+            else:
+                if use_scores[0] < scores[0]:
+                    use_target = target
+                    use_scores = scores
+        return use_target, use_scores, True
+
+    # if no match
+    else:
+        return highest_target, highest_scores, False
+    
+    return use_target, scores
+        
+def assignTarget(df, number_sentences=1, thresholds=(0.9, 0.65, 0.65, 0.65)):
+    ###########################あとでけす###########################
+    import importlib
+    importlib.reload(tkn)
+    ################################################################
+    global w2v
+    if not w2v.model:
+        w2v.loadModel()
+
+    target_list = []
+    use_list = []
+    for _, value in df.iterrows():
+        ###########################あとでけす###########################
+        # import time
+        # time.sleep(2)
+        ################################################################
+        title = value[0]
+        content = value[1]
+        target, scores, use = pickupSentences(title, content, number_sentences, thresholds)
+        target_list.append(target)
+        use_list.append(use)
+            
+        ###########################あとでけす###########################
+        # if not target[-1] == "。":
+        # if target is None:
+        #     print("-"*100)
+        #     print(title)
+        #     print(target)
+        #     print(content)
+        #     print(scores)
+        #     print(use)
+        ################################################################
+
+    df["target"] = use_list
+    df["use"] = use_list
+    return df
+    
+def parseMedia():
+    target_list = []
+    for line in lines:
+        target_list.append(line.strip())
+    for target in target_list:
+        df = pd.read_pickle(os.path.join(my_path, "../result", target, "common_procesed.pkl"))
+        df = assignTarget(df)
+        
