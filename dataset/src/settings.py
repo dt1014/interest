@@ -11,3 +11,4 @@ postgres_url = "postgres://%s/%s"%(postgres_host, postgres_db)
 
 START = "<S>"
 EOS = "<EOS>"
+DIGIT = "<D>"

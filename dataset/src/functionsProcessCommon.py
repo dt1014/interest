@@ -6,6 +6,9 @@ import mojimoji
 
 from settings import START, EOS
 
+def processDigit(sentence):
+    return re.sub("[0-9]{1,}", "<D>", sentence)
+
 def processGeneralTitle(title):
     title = mojimoji.han_to_zen(title, digit=False, ascii=False)
     title = mojimoji.zen_to_han(title, kana=False)

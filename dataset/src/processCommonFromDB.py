@@ -34,8 +34,12 @@ def process(conn, query, target, logger):
     df = df.assign(title__=lambda df: df["title_"].apply(functions.__dict__["process"+target.capitalize()+"Title"]),
                    content__=lambda df: df["content_"].apply(functions.__dict__["process"+target.capitalize()+"Content"]))
 
+    # process digit
+    df = df.assign(title___=lambda df: df["title__"].apply(functions.__dict__["processDigit"]),
+                   content___=lambda df: df["content__"].apply(functions.__dict__["processDigit"]))
+    
     df = df.reset_index(drop=True)
-
+    
     return df
     
 def main(args):
