@@ -18,7 +18,7 @@ function processCommonFromDB() {
 		rm ${logpath}
     fi
 
-    python ${working_dir}/processCommonFromDB.py \
+    python ${src_dir}/processCommonFromDB.py \
 		   --outpath ${result_dir}/${target}/common_procesed.pkl \
 		   --logpath ${logpath} \
 		   --target ${target}
