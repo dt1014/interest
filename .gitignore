@@ -15,3 +15,6 @@ summarization/ABS/result_using_word2vec
 scraper/log
 dataset/result/
 dataset/log/
+*.ipynb
+word2vec
+*#*.py
