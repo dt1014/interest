@@ -48,10 +48,10 @@ def removeInside(sentence, remove_list):
                                                                                                                            
 def processReutersTitle(title):
     head_remove_list = ["〔.+〕", "訂正:", "訂正.+-", "再送:", "再送-", "コラム:", "焦点:", "視点:", "インタビュー:", "アングル:", "緊急市場調査:", \
-                        "情報BOX:", "特別リポート:", "ホットストック:", "ブログ:", "オピニオン:", "BRIEF-", "UPDATE.*-", r"^【.+?】", r"コラム【.+?】"r"^\(.+?\)"]
+                        "情報BOX:", "特別リポート:", "ホットストック:", "ブログ:", "オピニオン:", "BRIEF-", "UPDATE.*-", r"^【.+?】", r"コラム【.+?】", r"^\(.+?\)", r"^.+?こうみる:"]
     tail_remove_list = ["[:=]識者は?こうみる", r"\s*\|\s*ロイター"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processReutersContent(content):
     head_remove_list = [r"\[.+?\]\s*-?\s*", r"^【.+?】"]
@@ -66,13 +66,13 @@ def processReutersContent(content):
         else:
             break
     content = removeInside(content, inside_remove_list)
-    return START + content.strip() + EOS
+    return content.strip()
 
 def processAfpTitle(title):
     head_remove_list = ["^【.+?】", "^<.*Beauty Life>", "^動画:", "^字幕:"]
     tail_remove_list = ["写真\d*枚 国際ニュース:AFPBB News", "写真\d*枚 マリ・クレール (スタイル|スタイル ムッシュ|スタイル マリアージュ) : marie claire (style|style monsieur|style mariage)"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processAfpContent(content):
     head_remove_list = ["^<br>", "^【.*?】", "^\(.+?\)"]
@@ -80,7 +80,7 @@ def processAfpContent(content):
     inside_remove_list = ["【.*?】"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     content = removeInside(content, inside_remove_list)
-    return START + content.strip() + EOS
+    return content.strip()
 
 def processSankeiTitle(title):
     head_remove_list = [r"^【.+?】", r"\(動画(あり|付き|つき|も)\)"]
@@ -88,7 +88,7 @@ def processSankeiTitle(title):
     inside_remove_list = [r"\(\d+完?\)", r"\([上下]\)"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list]) 
     title = removeInside(title, inside_remove_list)
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processSankeiContent(content):
     symbol = ["■", "□", "◆", "◇", "▲", "△", "▼", "▽"]
@@ -97,7 +97,7 @@ def processSankeiContent(content):
     tail_remove_list = [r"<br>%s"%x for x in symbol]
     inside_remove_list = ["[%s]"%("".join(symbol))] 
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
-    return START + content.strip() + EOS
+    return content.strip()
 
 def processAsahiTitle(title):
     head_remove_list = [r"^【.+?】",  r"^\(.+?\)", r"^《.+?》", r"^訂正:"]
@@ -105,13 +105,13 @@ def processAsahiTitle(title):
     inside_remove_list = [r"\(\d+\)", r"\([上下]\)"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
     title = removeInside(title, inside_remove_list)
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processAsahiContent(content):
     head_remove_list = [r"^<br>"]
     tail_remove_list = []
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
-    return START + content.strip() + EOS
+    return content.strip()
 
 def processYomiuriTitle(title):
     head_remove_list = [r"^<br>", r"^\(.+?\)", r"^〈[1-9上下]+〉", r"^【.+?】"]
@@ -119,22 +119,22 @@ def processYomiuriTitle(title):
     inside_remove_list = [r"\(\d+\)", r"\([上下]\)"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
     title = removeInside(title, inside_remove_list)
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processYomiuriContent(content):
     head_remove_list = [r"^<br>"]
     tail_remove_list = []
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list])
-    return START + content.strip() + EOS
+    return content.strip()
     
 def processJijiTitle(title):
-    return START + title.strip() + EOS # give up...
+    return title.strip() # give up...
 
 def processJijiContent(content):
     head_remove_list = [r"^<br>", r"^【.+?】", r"^\(.+?\)"]
     tail_remove_list = [r"<br>関連ニュース", r"<br>【(社会|経済|政治)記事一覧へ】", r"<br>【アクセスランキング】", r"【.+?】$"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
-    return START + content.strip() + EOS
+    return content.strip()
     
 def processNikkeiTitle(title):
     head_remove_list = [r"^<br>", r"^\(.+?\)", r"^\)"]
@@ -142,7 +142,7 @@ def processNikkeiTitle(title):
     inside_remove_list = [r"\([0-9上下]\)"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list])
     title = removeInside(title, inside_remove_list)
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processNikkeiContent(content):
     head_remove_list = [r"^<br>", r"^\(.+?\)", r"^<br>", r"^【.+?】", r"^<br>"]
@@ -150,19 +150,19 @@ def processNikkeiContent(content):
     inside_remove_list = [r"画像の拡大"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     content = removeInside(content, inside_remove_list)
-    return START + content.strip() + EOS
+    return content.strip()
 
 def processZaikeiTitle(title):
     head_remove_list = [r"^【.+?】", "^■FISCOアプリの銘柄選定:【本日の材料と銘柄】", "^《新興市場銘柄ダイジェスト》:", "^■(.+?)の銘柄選定:"]
     tail_remove_list = [r"\s*\|\s*財経新聞\s*$", "\s*\|\s*韓流STARS\s*$"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processZaikeiContent(content):
     head_remove_list = [r"^<br>"]
     tail_remove_list = []
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
-    return START + content.strip() + EOS # tired...
+    return content.strip() # tired...
 
 def processItmediaTitle(title):
     head_remove_list = []
@@ -171,22 +171,22 @@ def processItmediaTitle(title):
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
     title = removeInside(title, inside_remove_list)
     title = re.sub("[―—]{2}", ":", title)
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processItmediaContent(content):
     head_remove_list = []
     tail_remove_list = [r"<br>Copyright©", r"<br>.+?も併せてチェック", "。<br>過去の.+?一覧はこちら", "この記事が気に入ったら"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
-    return START + content.strip() + EOS 
+    return content.strip() 
 
 def processGigazineTitle(title):
     head_remove_list = []
     tail_remove_list = ["\s+\-\s+.+?$", "((先行)?試[飲食]|食べ比べ|速攻(フォト)?|フォト|実機)?レビュー$"]
     title = removeHeadTail(title, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
-    return START + title.strip() + EOS
+    return title.strip()
 
 def processGigazineContent(content):
     head_remove_list = [r"^<br>"]
     tail_remove_list = [r"<br>関連コンテンツ$"]
     content = removeHeadTail(content, [2, 1], [head_remove_list, tail_remove_list], remove_formats=["(%s)(.+)", "(.+?)(%s)"])
-    return START + content.strip() + EOS # so tired......
+    return content.strip() # so tired......
