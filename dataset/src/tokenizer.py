@@ -27,8 +27,20 @@ def tokenize(sentence, O="chasen", neologd=False):
             result.append([re.sub("\t", "-", m.group(1)), re.sub("\t", "-", m.group(2))])
     return result
 
-def splitContent(content, number_sentences=1):
-    content = re.sub("\s", "", content)
+def replaceString(sentence, patterns):
+    for s, l in patterns.items():
+        sentence = re.sub(s, l, sentence)
+    return sentence
+        
+def splitContent(content, number_sentences):
+    patterns = {"\s": "",
+                "\(<br>": "(",
+                "<br>\)": ")",
+                "<br>、": "、",
+                "<br>。": "。",
+                "「<br>": "「",
+                "<br>」": "」"}
+    content = replaceString(content, patterns)
     split_point = "(。|<br>)"
     result = []
     for splitted in re.split(split_point, content):
