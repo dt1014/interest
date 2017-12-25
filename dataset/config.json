@@ -1,0 +1,7 @@
+{
+	"dataset1": {"previous_window_size": 4,
+				 "val_test_ratio": 0.2},
+	
+	"dataset2": {"previous_window_size": 8,
+				 "val_test_ratio": 0.2}
+}
