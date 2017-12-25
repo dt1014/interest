@@ -17,7 +17,7 @@ import utils
 rng = np.random.RandomState(0)
 
 def split_x_yc_t(row, window_size, previous_ids):
-    
+
     title = previous_ids + row[1][0]
     target = row[1][1]
     result = []
@@ -41,7 +41,7 @@ def schedule_split(df, config, dictionary):
     
     return result
 
-def save(train, df_id_train, df_id_val, df_id_test, outdir):
+def save(train, val, test, df_id_train, df_id_val, df_id_test, dictionary, outdir):
 
     save_dict = locals()
     save_dict.pop("outdir")
@@ -61,8 +61,12 @@ def main(args):
     
     train = schedule_split(df_id_train, args.config, dictionary)
     train = pd.DataFrame(train, columns=["x", "yc", "t"])
+    val = schedule_split(df_id_val, args.config, dictionary)
+    val = pd.DataFrame(val, columns=["x", "yc", "t"])
+    test = schedule_split(df_id_test, args.config, dictionary)
+    test = pd.DataFrame(test, columns=["x", "yc", "t"])
 
-    save(train, df_id_train, df_id_val, df_id_test, args.outdir)
+    save(train, val, test, df_id_train, df_id_val, df_id_test, dictionary, args.outdir)
     
     
 if __name__ == "__main__":
