@@ -42,7 +42,6 @@ class ABS(Chain):
 
     def __call__(self, x_yc):
 
-        
         ### encoder ###
         xs = [Variable(self.xp.array(x, dtype=self.xp.int32)) for x, _ in x_yc]
         yc = Variable(self.xp.array([yc for _, yc in x_yc], dtype=self.xp.int32))
@@ -63,13 +62,12 @@ class ABS(Chain):
         print("P_tilde_dash_yc")
         print(P_tilde_dash_yc.shape)
 
-        xPyc = [F.exp(F.flatten(F.matmul(pyc, F.transpose(x)))) for pyc, x in zip(F.split_axis(P_tilde_dash_yc, P_tilde_dash_yc.shape[0], axis=0), tilde_xs)]
+        xPyc = [F.flatten(F.softmax(F.matmul(pyc, F.transpose(x)), axis=1)) for pyc, x in zip(F.split_axis(P_tilde_dash_yc, P_tilde_dash_yc.shape[0], axis=0), tilde_xs)]
         print("xPyc")
         print([i.shape for i in xPyc])
-
+        
         print("check")
         print([F.expand_dims(F.expand_dims(x, axis=0), axis=3).shape for x in tilde_xs])
-
 
         print("pad_size")
         print(self.pad_size_former)
@@ -81,10 +79,6 @@ class ABS(Chain):
         print([i.shape for i in tilde_xs])
         print("padded_xs")
         print([i.shape for i in padded_xs])
-
-        print()
-        print(padded_xs[0])
-        print()
         
         bar_xs = [F.average_pooling_2d(F.expand_dims(F.expand_dims(x, axis=0), axis=1), ksize=(self.Q_smoothing_window, 1), stride=(1, 1), pad=0) for x in padded_xs]
         print("bar_xs")
@@ -114,6 +108,7 @@ class ABS(Chain):
         y = self.V(h) + self.W(enc)
         print("y")
         print(y.shape)
+        print(y)
         
         if self.return_enc:
             pass
