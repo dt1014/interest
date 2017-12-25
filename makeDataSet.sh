@@ -1,6 +1,6 @@
 #!/bin/bash
 
-working_dir=dataset
+working_dir=data
 src_dir=${working_dir}/src
 result_dir=${working_dir}/result
 log_dir=${working_dir}/log
@@ -66,21 +66,6 @@ function makeDictionary() {
 	fi
 }
 
-function getDataset() {
-
-	inpath=${result_dir}/all/makeDictionary${datalabel}/
-	outdir=${result_dir}/all/dataset${datalabel}/${config_name}
-	mkdir -p ${outdir}
-	if [ ! -e ${outdir}/train.pkl -o ! -e ${outdir}/val.pkl -o ! -e ${outdir}/test.pkl ];then
-
-		echo "***dataset.py***"
-		python -W ignore ${src_dir}/dataset.py \
-			   --inpath ${inpath} \
-			   --outdir ${outdir} \
-			   --config "${config}"
-	fi
-}
-
 datalabel=""
 
 for option in "$@"
@@ -110,13 +95,4 @@ getTarget
 
 makeDictionary
 
-dataset_config_path="dataset/config.json"
-dataset_config=`cat ${dataset_config_path}`
-length=`echo ${dataset_config} | jq length`
 
-for i in $( seq 1 ${length} )
-do
-	config_name=dataset${i}
-	config=`echo ${dataset_config} | jq -r .${config_name}`
-	getDataset
-done

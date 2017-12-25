@@ -12,10 +12,11 @@ tensorflow/ABS/scripts/debug
 tensorflow/ABS/result/
 tensorflow/ABS/result_plus_using_word2vec
 tensorflow/ABS/result_using_word2vec
-chainer/ABS/result/
+chainer/ABS/dataset/result
+chainer/ABS/training/result
 scraper/log
-dataset/result/
-dataset/log/
+data/result/
+data/log/
 *.ipynb
 word2vec
 *#*.py

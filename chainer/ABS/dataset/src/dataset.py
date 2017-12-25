@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import pickle
 import argparse
@@ -7,6 +8,8 @@ import pandas as pd
 
 import functools
 from multiprocessing import Pool
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)) + "/../../../../data/src/")
 
 from makeDictionary import START_SYMBOL, END_SYMBOL
 import utils
