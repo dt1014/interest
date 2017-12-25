@@ -7,6 +7,7 @@ import pandas as pd
 
 import word2vec_model as w2v
 import tokenizer as tkn
+import utils
 
 my_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -175,7 +176,7 @@ def pickupSentences(title, content, number_sentences, thresholds):
     else:
         return highest_target, highest_scores, False
     
-    return use_target, scores
+    #return use_target, scores
         
 def assignTarget(df, number_sentences=1, thresholds=(0.9, 0.65, 0.65, 0.65)):
     ###########################あとでけす###########################
@@ -209,16 +210,49 @@ def assignTarget(df, number_sentences=1, thresholds=(0.9, 0.65, 0.65, 0.65)):
         #     print(scores)
         #     print(use)
         ################################################################
-
-    df["target"] = use_list
+        
+    df["target"] = target_list
     df["use"] = use_list
     return df
     
-def parseMedia():
+def parseMedia(flag_small):
     target_list = []
     for line in lines:
         target_list.append(line.strip())
+
+    list_df = []
     for target in target_list:
+        print("loading  ", target)
         df = pd.read_pickle(os.path.join(my_path, "../result", target, "common_procesed.pkl"))
-        df = assignTarget(df)
+
+        print("   searching target")
+
+        if flag_small:
+            print("   small data")
+            df = df.ix[np.random.choice(np.arange(len(df)), 1000, replace=False), :].reset_index(drop=True)  
         
+        df_ = assignTarget(df[["title__", "content__"]])
+        df__ = df_.ix[np.where(df_["use"])[0], ["title__", "target"]].reset_index(drop=True)
+        list_df.append(df__)
+
+    result = pd.concat(list_df, axis=0).reset_index(drop=True)
+    result.columns = ["title", "target"]
+    return result
+
+def save(outpath, result):
+    utils.savePickle(outpath, result)
+                
+def main(args):
+
+    result = parseMedia(args.small)
+    save(args.outpath, result)
+
+    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--outpath", type=str, help="")
+    parser.add_argument("--small", action="store_true", default=False, help="")
+    args = parser.parse_args()
+
+    main(args)
+    
