@@ -1,0 +1,30 @@
+{
+	"nn1": {"name": "ABS",
+			"D_embedding_size": 200,
+			"H_hidden_size": 400,
+			"Q_smoothing_window": 2,
+			"dropout_ratio": 0.0,
+			"activate": "tanh"
+		   },
+	"nn2": {"name": "ABS",
+			"D_embedding_size": 200,
+			"H_hidden_size": 400,
+			"Q_smoothing_window": 4,
+			"dropout_ratio": 0.0,
+			"activate": "relu"
+		   },
+	"nn3": {"name": "ABS",
+			"D_embedding_size": 200,
+			"H_hidden_size": 400,
+			"Q_smoothing_window": 2,
+			"dropout_ratio": 0.5,
+			"activate": "tanh"
+		   },
+	"nn4": {"name": "ABS",
+			"D_embedding_size": 200,
+			"H_hidden_size": 400,
+			"Q_smoothing_window": 4,
+			"dropout_ratio": 0.5,
+			"activate": "relu"
+		   }
+}

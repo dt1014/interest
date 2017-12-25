@@ -1,0 +1,34 @@
+{
+    "opt1": {
+        "weight_decay": true,
+        "optimizer": {
+			"name": "SGD"
+        },
+        "batchsize": 50,
+        "epoch": 50
+    },
+	"opt2": {
+        "weight_decay": true,
+        "optimizer": {
+			"name": "Adam"
+        },
+        "batchsize": 50,
+        "epoch": 50
+    },
+	"opt3": {
+        "weight_decay": true,
+        "optimizer": {
+			"name": "SGD"
+        },
+        "batchsize": 200,
+        "epoch": 50
+    },
+	"opt4": {
+        "weight_decay": true,
+        "optimizer": {
+			"name": "Adam"
+        },
+        "batchsize": 200,
+        "epoch": 50
+    }
+}
