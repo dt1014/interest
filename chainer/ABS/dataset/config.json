@@ -1,7 +1,11 @@
 {
 	"dataset1": {"previous_window_size": 4,
-				 "val_test_ratio": 0.2},
+				 "val_test_ratio": 0.2,
+				 "min_length_x": 10,
+				 "max_length_x": 100},
 	
 	"dataset2": {"previous_window_size": 8,
-				 "val_test_ratio": 0.2}
+				 "val_test_ratio": 0.2,
+				 "min_length_x": 10,
+				 "max_length_x": 100}
 }
