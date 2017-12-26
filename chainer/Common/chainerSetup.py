@@ -61,7 +61,7 @@ def cudaCheck():
 
 def cudaSetup(model, env_config):
     try:
-        gpu = env_config["gpu"]
+        gpu = env_config["gpu"]["main"]
         cuda.check_cuda_available()
         cuda.get_device(gpu).use()
         model.to_gpu()

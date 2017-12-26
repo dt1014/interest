@@ -14,7 +14,7 @@ from chainer.training import extensions
 
 from utils import *
 
-env_config = {"gpu": 0}
+env_config = {"gpu": {"main": 0, "second": 1, "third": 2, "forth": 3}}
 
 def convertBatch(batch, device, online_pad=False):
 
@@ -48,15 +48,16 @@ def trainModel(args, train, val, dictionary):
     train_iter = SerialIterator(train, args.opt_config["batchsize"])
     val_iter = SerialIterator(val, len(val), repeat=False, shuffle=False)
 
-    # updater = training.StandardUpdater(train_iter,
-    #                                    optimizer,
-    #                                    converter=converter,
-    #                                    device=env_config["gpu"])
-    
-    updater = training.ParallelUpdater(train_iter,
-                                       optimizer,
-                                       converter=convertBatch,
-                                       devices={"main": 0, "second": 1, "third": 2, "forth": 3})
+    if isinstance(env_config["gpu"], int):
+        updater = training.StandardUpdater(train_iter,
+                                           optimizer,
+                                           converter=convertBatch,
+                                           device=env_config["gpu"])
+    else:
+        updater = training.ParallelUpdater(train_iter,
+                                           optimizer,
+                                           converter=convertBatch,
+                                           devices=env_config["gpu"])
 
     evaluator = extensions.Evaluator(val_iter,
                                      model,
