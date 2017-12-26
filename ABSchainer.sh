@@ -54,6 +54,9 @@ function train() {
 	outdir=${result_dir}/${dataset_config_name}${datalabel}/${nn_opt}
 	mkdir -p ${outdir}
 
+	tempdir=${indir}/temp
+	mkdir -p ${tempdir}
+	
 	lastepoch=`echo ${opt_config} | jq -r .epoch`
 	
 	if [ ! -e ${outdir}/model${lastepoch} ];then
@@ -61,6 +64,7 @@ function train() {
 		python ${src_dir}/train.py \
 			   --trainpath ${trainpath} \
 			   --valpath ${valpath} \
+			   --tempdir ${tempdir} \
 			   --dicpath ${dicpath} \
 			   --outdir ${outdir} \
 			   --dataset_config "${dataset_config}" \
@@ -85,8 +89,6 @@ function schedule_train() {
 				opt_config=`echo ${opt_config_json} | jq -r .opt${j}`
 				
 				train
-				exit
-
 			done
 		done
 	done
