@@ -8,6 +8,8 @@ data_dir=data/
 dataset_dir=${working_dir}/dataset
 
 datalabel=""
+train_decode="${1}"
+shift 1
 
 for option in "$@"
 do
@@ -17,7 +19,6 @@ do
 	    shift 1
     esac
 done
-
 
 function getDataset() {
 
@@ -46,7 +47,11 @@ function schedule_getDataset() {
 }
 
 function train() {
-
+	echo "------------------------------------------------"
+	echo "dataset :   ${dataset_config_name}${datalabel}"
+	echo "nn_opt  :   ${nn_opt}"
+	echo "------------------------------------------------"
+	
 	indir=${dataset_dir}/result/${dataset_config_name}${datalabel}
 	trainpath=${indir}/train.pkl
 	valpath=${indir}/val.pkl
@@ -94,6 +99,36 @@ function schedule_train() {
 	done
 }
 
+function decode() {
+
+	indir=${dataset_dir}/result/${dataset_config_name}${datalabel}
+	trainpath=${indir}/df_id_train.pkl
+	valpath=${indir}/df_id_val.pkl
+	testpath=${indir}/df_id_test.pkl
+	dicpath=${indir}/dictionary.pkl
+	modelpath=${result_dir}/${dataset_config_name}${datalabel}/${nn_opt}/model${epoch}
+
+	outpath=${result_dir}/${dataset_config_name}${datalabel}/${nn_opt}/decode.csv
+	
+	dataset_config=`echo ${dataset_config_json} | jq -r .${dataset_config_name}`
+	nn_config=`echo ${nn_config_json} | jq -r .nn${nn_num}`
+	opt_config=`echo ${opt_config_json} | jq -r .opt${opt_num}`
+	
+	#if [ -e ${modelpath} ];then
+	if true; then
+		python -W ignore ${src_dir}/decode.py \
+			   --trainpath ${trainpath} \
+			   --valpath ${valpath} \
+			   --testpath ${testpath} \
+			   --dicpath ${dicpath} \
+			   --modelpath ${modelpath} \
+			   --outpath ${outpath} \
+			   --dataset_config "${dataset_config}" \
+			   --nn_config "${nn_config}" \
+			   --opt_config "${opt_config}"
+	fi
+		
+}
 
 dataset_config_path="${dataset_dir}/config.json"
 dataset_config_json=`cat ${dataset_config_path}`
@@ -104,6 +139,17 @@ nn_length=`echo ${nn_config_json} | jq length`
 opt_config_path="${config_dir}/opt.json"
 opt_config_json=`cat ${opt_config_path}`
 opt_length=`echo ${opt_config_json} | jq length`
-	
+
 schedule_getDataset
-schedule_train
+
+if [ ${train_decode} = "train" ]; then
+	schedule_train
+elif [ ${train_decode} = "decode" ]; then
+	read -p "dataset number: " dataset_num
+	read -p "nn number: " nn_num
+	read -p "opt number: " opt_num
+	read -p "epoch: " epoch
+	dataset_config_name=dataset${dataset_num}
+	nn_opt=nn${nn_num}opt${opt_num}
+	decode
+fi
