@@ -4,7 +4,6 @@ import sys
 import json
 import pickle
 import argparse
-import nnModel
 
 import chainer
 from chainer.iterators import SerialIterator
@@ -12,6 +11,7 @@ from chainer import training
 from chainer.dataset import convert
 from chainer.training import extensions
 
+import nnModel
 from utils import *
 
 env_config = {"gpu": {"main": 0, "second": 1, "third": 2, "forth": 3}}
@@ -46,7 +46,7 @@ def trainModel(args, train, val, dictionary):
     xp, gpu, model = setup.cudaSetup(model, env_config)
     
     train_iter = SerialIterator(train, args.opt_config["batchsize"])
-    val_iter = SerialIterator(val, len(val), repeat=False, shuffle=False)
+    # val_iter = SerialIterator(val, len(val), repeat=False, shuffle=False)
 
     if isinstance(env_config["gpu"], int):
         updater = training.StandardUpdater(train_iter,
@@ -58,11 +58,15 @@ def trainModel(args, train, val, dictionary):
                                            optimizer,
                                            converter=convertBatch,
                                            devices=env_config["gpu"])
-
-    evaluator = extensions.Evaluator(val_iter,
-                                     model,
-                                     converter=convertBatch,
-                                     device=env_config["gpu"])
+    # if isinstance(env_config["gpu"], int):
+    #     eval_device = env_config["gpu"]
+    # else:
+    #     eval_device = env_config["gpu"]["main"]
+        
+    # evaluator = extensions.Evaluator(val_iter,
+    #                                  model,
+    #                                  converter=convertBatch,
+    #                                  device=eval_device)
         
     trainer = training.Trainer(updater, (args.opt_config["epoch"], "epoch"), args.outdir)
     
@@ -73,7 +77,7 @@ def trainModel(args, train, val, dictionary):
                                               filename="model{.updater.epoch}"))
     trainer.extend(extensions.dump_graph("main/loss",
                                          out_name="cg.dot"))
-    trainer.extend(evaluator, name="val")
+    # trainer.extend(evaluator, name="val")
     trainer.extend(extensions.ProgressBar())
 
     sys.stdout.flush()
@@ -101,6 +105,9 @@ def main(args):
         saveOBJs(args.tempdir, {"train": train, "val": val})
         
     sys.stdout.flush()
+
+    del val
+    val = None
     
     trainModel(args, train, val, dictionary)
 
