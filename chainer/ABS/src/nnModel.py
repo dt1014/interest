@@ -19,22 +19,24 @@ class ABS(Chain):
                  Q_smoothing_window,
                  dropout_ratio=0.0,
                  activate=F.tanh,
-                 return_enc=False):
+                 initial_EG_W=None,
+                 initial_F_W=None,
+                 return_p=False):
         
         super(ABS, self).__init__()
         self.dropout_ratio = dropout_ratio
-        self.return_enc = return_enc
+        self.return_p = return_p
         self.H_hidden_size = H_hidden_size
         self.Q_smoothing_window = Q_smoothing_window
         pad_size_all = Q_smoothing_window - 1
         self.pad_size_former = pad_size_all // 2
         self.pad_size_latter = pad_size_all - self.pad_size_former
         self.activate = activate
-        
+   
         with self.init_scope():
-            self.E = L.EmbedID(V_vocab_size, D_embedding_size, ignore_label=-1)
-            self.F = L.EmbedID(V_vocab_size, H_hidden_size, ignore_label=-1)
-            self.G = L.EmbedID(V_vocab_size, D_embedding_size, ignore_label=-1)
+            self.E = L.EmbedID(V_vocab_size, D_embedding_size, initialW=initial_EG_W, ignore_label=-1)
+            self.F = L.EmbedID(V_vocab_size, H_hidden_size, initialW=initial_F_W, ignore_label=-1)
+            self.G = L.EmbedID(V_vocab_size, D_embedding_size, initialW=initial_EG_W, ignore_label=-1)
             self.U = L.Linear(C_window_size*D_embedding_size, H_hidden_size)
             self.V = L.Linear(H_hidden_size, V_vocab_size)
             self.W = L.Linear(H_hidden_size, V_vocab_size)
@@ -51,7 +53,7 @@ class ABS(Chain):
         tilde_dash_yc = self.G(yc)
         
         P_tilde_dash_yc = self.P(F.reshape(tilde_dash_yc, (tilde_dash_yc.shape[0], -1)))
-        
+
         xPyc = [F.flatten(F.softmax(F.matmul(pyc, F.transpose(x)), axis=1)) for pyc, x in zip(F.split_axis(P_tilde_dash_yc, P_tilde_dash_yc.shape[0], axis=0), tilde_xs)]
         
         padded_xs = [F.concat((F.concat((F.broadcast_to(x[0], (self.pad_size_former, self.H_hidden_size)), x), axis=0), F.broadcast_to(x[-1], (self.pad_size_latter, self.H_hidden_size))), axis=0) for x in tilde_xs]
@@ -61,15 +63,15 @@ class ABS(Chain):
         
         enc = F.concat([F.matmul(F.expand_dims(p, axis=0), bar_x) for p, bar_x in zip(xPyc, bar_xs)], axis=0)
 
-        if self.return_enc:
-            return enc
-        
+        if self.return_p:
+            return xPyc, enc
+
         ### NLM ###
         tilde_yc = self.E(yc)
 
-        h = self.activate(self.U(tilde_yc))
+        h =  F.dropout(self.activate(self.U(tilde_yc)), ratio=self.dropout_ratio)
 
         ### Integrate ###
-        y = self.V(h) + self.W(enc)
+        y = F.dropout(self.V(h), ratio=self.dropout_ratio) + F.dropout(self.W(enc), ratio=self.dropout_ratio)
         
         return y

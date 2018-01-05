@@ -10,13 +10,40 @@ from chainer.iterators import SerialIterator
 from chainer import training
 from chainer.dataset import convert
 from chainer.training import extensions
+import chainer.links as L
 
 import nnModel
 from utils import *
 
+sys.path.append(os.path.abspath(os.path.dirname(__file__)) + "/../../../data/src/")
+import word2vec_model as w2v
+
 env_config = {"gpu": {"main": 0, "second": 1, "third": 2, "forth": 3}}
 
-def convertBatch(batch, device, online_pad=False):
+def getInitialEmbed(vocab_size, embedding_size, dictionary, name):
+    if name is None:
+        w2v.loadModel()
+    else:
+        try:
+            w2v.loadModel(name, binary=False)
+        except FileNotFoundError:
+            w2v.trainModel(size=embedding_size, name=name)
+            
+    initial_W = L.EmbedID(vocab_size, embedding_size, ignore_label=-1).W.data
+
+    replace_count = 0
+    for token, ID in dictionary.items():
+        try:
+            initial_W[ID] = w2v.model[token]
+            replace_count += 1
+        except KeyError:
+            pass
+
+    initial_W = initial_W.astype(np.float32)
+
+    return initial_W, replace_count
+    
+def convertBatch(batch, device=-1, online_pad=False):
 
     xs = [x for x, _ in batch]
     ts = [t for _, t in batch]
@@ -35,24 +62,35 @@ def convertBatch(batch, device, online_pad=False):
         result_x = chainer.cuda.cupy.split(concat_x_, range_x_)
         result_x_ = []
         for i in range(0, len(concat_x), 2):
-            result_x_.append((result_x[i], result_x[i+1]))                                                                                              
+            result_x_.append((result_x[i], result_x[i+1]))
         result_t = chainer.cuda.cupy.array(ts)
         return tuple([result_x_, result_t])
 
 def trainModel(args, train, val, dictionary):
 
     configSetup(args, dictionary)
+    
+    if args.opt_config["use_word2vec"]:
+        sys.stdout.write("\r%-50s"%"   setting initial W ...")
+        args.nn_config["initial_EG_W"], replace_count_EG = getInitialEmbed(args.nn_config["V_vocab_size"], args.nn_config["D_embedding_size"], dictionary, name=None)
+        w2v.model = None
+        args.nn_config["initial_F_W"], replace_count_F = getInitialEmbed(args.nn_config["V_vocab_size"], args.nn_config["H_hidden_size"], dictionary, name="my.model%d"%args.nn_config["H_hidden_size"])
+        sys.stdout.flush()
+        print()
+        print(   "times replaing initial vector for E and G: %d / %d"%(replace_count_EG, args.nn_config["V_vocab_size"]))
+        print(   "times replaing initial vector for F      : %d / %d"%(replace_count_F, args.nn_config["V_vocab_size"]))
+        
     nn, model, optimizer = setup.modelSetup(nnModel, args.nn_config, args.opt_config)
     xp, gpu, model = setup.cudaSetup(model, env_config)
     
     train_iter = SerialIterator(train, args.opt_config["batchsize"])
     # val_iter = SerialIterator(val, len(val), repeat=False, shuffle=False)
 
-    if isinstance(env_config["gpu"], int):
+    if isinstance(env_config["gpu"]["main"], int):
         updater = training.StandardUpdater(train_iter,
                                            optimizer,
                                            converter=convertBatch,
-                                           device=env_config["gpu"])
+                                           device=env_config["gpu"]["main"])
     else:
         updater = training.ParallelUpdater(train_iter,
                                            optimizer,
@@ -101,14 +139,12 @@ def main(args):
     else:
         train = pickle.load(open(args.trainpath, "rb"))
         val = pickle.load(open(args.valpath, "rb"))
-        train, val = trainSetup(train, val)
+        train, val = dataSetup(train, val)
         saveOBJs(args.tempdir, {"train": train, "val": val})
-        
-    sys.stdout.flush()
 
     del val
     val = None
-    
+  
     trainModel(args, train, val, dictionary)
 
 
