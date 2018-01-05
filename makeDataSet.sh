@@ -43,10 +43,14 @@ function getTarget() {
 		if [ -z "${datalabel}" ];then
 			python ${src_dir}/getTarget.py \
 				   --outpath ${outpath} 
-		else
+		elif [ "${datalabel}" = "_small" ];then
 			python ${src_dir}/getTarget.py \
 				   --outpath ${outpath} \
 				   --small
+		elif [ "${datalabel}" = "_check" ];then
+			python ${src_dir}/getTarget.py \
+				   --outpath ${outpath} \
+				   --check
 		fi
 
 	fi
@@ -77,6 +81,10 @@ do
 		;;
 	"-s"|"--small" )
 	    datalabel="_small"
+	    shift 1
+		;;
+	"-c"|"--check" )
+	    datalabel="_check"
 	    shift 1
     esac
 done

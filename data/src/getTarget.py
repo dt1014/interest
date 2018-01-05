@@ -215,7 +215,7 @@ def assignTarget(df, number_sentences=1, thresholds=(0.9, 0.65, 0.65, 0.65)):
     df["use"] = use_list
     return df
     
-def parseMedia(flag_small):
+def parseMedia(flag_small, flag_check):
     target_list = []
     for line in lines:
         target_list.append(line.strip())
@@ -229,7 +229,11 @@ def parseMedia(flag_small):
 
         if flag_small:
             print("   small data")
-            df = df.ix[np.random.choice(np.arange(len(df)), 1000, replace=False), :].reset_index(drop=True)  
+            df = df.ix[np.random.choice(np.arange(len(df)), 1000, replace=False), :].reset_index(drop=True)
+
+        if flag_check:
+            print("   check data")
+            df = df.ix[np.random.choice(np.arange(len(df)), 10000, replace=False), :].reset_index(drop=True)  
         
         df_ = assignTarget(df[["title__", "content__"]])
         df__ = df_.ix[np.where(df_["use"])[0], ["title__", "target"]].reset_index(drop=True)
@@ -244,7 +248,7 @@ def save(outpath, result):
                 
 def main(args):
 
-    result = parseMedia(args.small)
+    result = parseMedia(args.small, args.check)
     save(args.outpath, result)
 
     
@@ -252,6 +256,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--outpath", type=str, help="")
     parser.add_argument("--small", action="store_true", default=False, help="")
+    parser.add_argument("--check", action="store_true", default=False, help="")
     args = parser.parse_args()
 
     main(args)

@@ -17,6 +17,10 @@ do
 	"-s"|"--small" )
 	    datalabel="_small"
 	    shift 1
+		;;
+	"-c"|"--check" )
+	    datalabel="_check"
+	    shift 1
     esac
 done
 
