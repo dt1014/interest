@@ -8,7 +8,7 @@ data_dir=data/
 dataset_dir=${working_dir}/dataset
 
 datalabel=""
-train_decode="${1}"
+command="${1}"
 shift 1
 
 for option in "$@"
@@ -203,9 +203,13 @@ opt_length=`echo ${opt_config_json} | jq length`
 
 schedule_getDataset
 
-if [ ${train_decode} = "train" ]; then
+if [ "${command}" = "train" ]; then
 	schedule_train
-elif [ ${train_decode} = "decode" ]; then
+	
+elif [ "${command}" = "test" ]; then
+	schedule_test
+	
+elif [ "${command}" = "decode" ]; then
 	read -p "dataset number: " dataset_num
 	read -p "nn number: " nn_num
 	read -p "opt number: " opt_num
