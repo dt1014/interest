@@ -103,6 +103,63 @@ function schedule_train() {
 	done
 }
 
+function test_() {
+	echo "------------------------------------------------"
+	echo "dataset :   ${dataset_config_name}${datalabel}"
+	echo "nn_opt  :   ${nn_opt}"
+	echo "------------------------------------------------"
+	
+	indir=${dataset_dir}/result/${dataset_config_name}${datalabel}
+	trainpath=${indir}/train.pkl
+	valpath=${indir}/val.pkl
+	testpath=${indir}/test.pkl
+	dicpath=${indir}/dictionary.pkl
+	outdir=${result_dir}/${dataset_config_name}${datalabel}/${nn_opt}
+	modelpath=${result_dir}/${dataset_config_name}${datalabel}/${nn_opt}/model{epoch}
+	mkdir -p ${outdir}
+
+	tempdir=${indir}/temp
+	mkdir -p ${tempdir}
+	
+	lastepoch=`echo ${opt_config} | jq -r .epoch`
+	
+	if [ ! -e ${outdir}/model${lastepoch} ];then
+	
+		python -W ignore ${src_dir}/test.py \
+			   --trainpath ${trainpath} \
+			   --valpath ${valpath} \
+			   --testpath ${testpath} \
+			   --tempdir ${tempdir} \
+			   --dicpath ${dicpath} \
+			   --modelpath ${modelpath} \
+			   --outdir ${outdir} \
+			   --dataset_config "${dataset_config}" \
+			   --nn_config "${nn_config}" \
+			   --opt_config "${opt_config}"
+	fi
+}
+
+function schedule_test() {
+
+	for i in $( seq 1 ${dataset_length} )
+	do
+		dataset_config_name=dataset${i}
+		dataset_config=`echo ${dataset_config_json} | jq -r .${dataset_config_name}`
+		
+		for i in $( seq 1 ${nn_length} )
+		do
+			for j in $( seq 1 ${opt_length} )
+			do
+				nn_opt=nn${i}opt${j}
+				nn_config=`echo ${nn_config_json} | jq -r .nn${i}`
+				opt_config=`echo ${opt_config_json} | jq -r .opt${j}`
+				
+				test_
+			done
+		done
+	done
+}
+
 function decode() {
 
 	indir=${dataset_dir}/result/${dataset_config_name}${datalabel}
