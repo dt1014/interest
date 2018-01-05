@@ -1,16 +1,16 @@
 {
 	"nn1": {"name": "ABS",
 			"D_embedding_size": 200,
-			"H_hidden_size": 400,
-			"Q_smoothing_window": 2,
+			"H_hidden_size":300,
+			"Q_smoothing_window": 4,
 			"dropout_ratio": 0.0,
-			"activate": "tanh"
+			"activate": "relu"
 		   },
 	"nn2": {"name": "ABS",
 			"D_embedding_size": 200,
-			"H_hidden_size": 400,
+			"H_hidden_size":300,
 			"Q_smoothing_window": 4,
-			"dropout_ratio": 0.0,
+			"dropout_ratio": 0.5,
 			"activate": "relu"
 		   }
 }

@@ -2,17 +2,19 @@
     "opt1": {
         "weight_decay": true,
         "optimizer": {
-			"name": "SGD"
+			"name": "Adam"
         },
-        "batchsize": 200,
-        "epoch": 10
+        "batchsize": 1000,
+        "epoch": 5,
+		"use_word2vec": true
     },
 	"opt2": {
         "weight_decay": true,
         "optimizer": {
 			"name": "Adam"
         },
-        "batchsize": 200,
-        "epoch": 10
+        "batchsize": 1000,
+        "epoch": 5,
+		"use_word2vec": false
     }
 }
