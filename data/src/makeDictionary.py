@@ -10,7 +10,7 @@ import pandas as pd
 import tokenizer as tkn
 import utils
 
-MIN_FREQUENCY = 5
+MIN_FREQUENCY = 3
 START_SYMBOL = "<S>"
 END_SYMBOL = "<EOS>"
 UNK_SYMBOL = "<UNK>"
@@ -19,8 +19,7 @@ DIGIT_SYMBOL = "<D>"
 def tokenizeFunc(sentence):
     func = functools.partial(tkn.tokenize, O="wakati", neologd=True)
     result = re.sub("\n", "", func(sentence))
-    result = re.sub(r"[0-9]+([^年月日時0-9])", r"%s\1"%DIGIT_SYMBOL, result)
-    result = re.sub(r"([1-9]{,2}月)", r"\1 ", result)
+    result = re.sub(r"[0-9]+([^0-9])", r"%s\1"%DIGIT_SYMBOL, result)
     result = re.sub(r"((午前)|(午後))", r"\1 ", result)
     return result.split()
     
@@ -49,7 +48,7 @@ def getDict(df):
     vocab_sizes = {"before filter": len(list(dictionary.iterkeys())),
                    "after filter": len(list(filtered_dict.items()))}
 
-    return filtered_dict, vocab_sizes, bow
+    return filtered_dict, vocab_sizes, bow, dictionary
 
 def token2idFunc(tokens, dictionary):
     result = []
@@ -74,7 +73,7 @@ def id2token(df, dictionary):
     df_ = df.applymap(func)
     return df_
     
-def save(df, df_id, dictionary, vocab_sizes, bow, outdir):
+def save(df, df_id, dictionary, vocab_sizes, bow, bow_dictionary, outdir):
 
     save_dict = locals()
     save_dict.pop("outdir")
@@ -90,7 +89,7 @@ def main(args):
     print("tokenize")
     df_token = tokenizeTitleTarget(df_raw)
     print("getDict")
-    dictionary, vocab_sizes, bow = getDict(df_token)
+    dictionary, vocab_sizes, bow, bow_dictionary = getDict(df_token)
     print("token2id")
     df_id = token2id(df_token, dictionary)
     df_token_unk = id2token(df_id, dictionary)
@@ -100,7 +99,7 @@ def main(args):
 
     df = pd.concat((df_raw, df_token, df_token_unk), axis=1)
     
-    save(df, df_id, dictionary, vocab_sizes, bow, args.outdir)
+    save(df, df_id, dictionary, vocab_sizes, bow, bow_dictionary, args.outdir)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
