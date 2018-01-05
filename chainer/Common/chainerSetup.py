@@ -30,7 +30,7 @@ def loadModel(model, model_path, epoch=None):
     if epoch is None:
         save_path = model_path
     else:
-        save_path = model_path.replace("%epoch", "%d"%epoch)
+        save_path = model_path.format(epoch=epoch)
     serializers.load_npz(save_path, model)
     return model
 
@@ -68,7 +68,7 @@ def cudaSetup(model, env_config):
         xp = cuda.cupy
         return xp, gpu, model
     except RuntimeError:
-        env_config["gpu"] = -1
+        env_config["gpu"]["main"] = -1
         return np, None, model
 
 def saveModel(model, model_path, epoch):

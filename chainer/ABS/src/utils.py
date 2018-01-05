@@ -12,11 +12,13 @@ def configSetup(args, dictionary):
     args.nn_config["V_vocab_size"] = len(list(dictionary.keys()))
     args.nn_config["C_window_size"] = args.dataset_config["previous_window_size"]
     args.nn_config["activate"] = F.__dict__[args.nn_config["activate"]]
+    
+def dataSetup(*args):
 
-def trainSetup(train_raw, val_raw):
-    train = [((np.int32(v[0]), np.int32(v[1])), np.int32(v[2])) for _, v in train_raw.iterrows()]
-    val = [((np.int32(v[0]), np.int32(v[1])), np.int32(v[2])) for _, v in val_raw.iterrows()]
-    return train, val
+    results = []
+    for data in args:
+        results.append([((np.int32(v[0]), np.int32(v[1])), np.int32(v[2])) for _, v in data.iterrows()])
+    return tuple(results)
 
 def savePickle(outpath, result):
     try:
